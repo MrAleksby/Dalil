@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DALIL Jump</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #333;
+            touch-action: none; /* Предотвращаем стандартные жесты браузера */
+        }
+        #gameCanvas {
+            max-width: 100%;
+            max-height: 100vh;
+            touch-action: none;
+        }
+        /* Стили для мобильных кнопок управления */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+        }
+        .control-button {
+            width: 60px;
+            height: 60px;
+            margin: 0 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            font-size: 24px;
+            touch-action: none;
+        }
+        /* Показываем кнопки только на мобильных устройствах */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="victory-screen" class="hidden">
+            <h1>Победа!</h1>
+            <button onclick="restartGame()">Играть снова</button>
+        </div>
+    </div>
+    <div class="mobile-controls">
+        <button id="leftButton" class="control-button">←</button>
+        <button id="rightButton" class="control-button">→</button>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 

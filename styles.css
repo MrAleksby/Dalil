@@ -1,0 +1,48 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: url('https://4.bp.blogspot.com/-031k5zunI9w/Wen8K2nGzLI/AAAAAAAAE5g/dMnTL7CuTL8nLXpCGWdGXtNbTHfEZKipwCLcBGAs/s1600/windows_10_hero_4k_wallpaper_3840x2160.jpg') center/cover;
+}
+
+#game-container {
+    position: relative;
+}
+
+#gameCanvas {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+#victory-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+button {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #45a049;
+} 
