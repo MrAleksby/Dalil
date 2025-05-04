@@ -75,14 +75,15 @@ class Game {
         // Добавляем параметры для скримера
         this.jumpscare = {
             active: false,
-            prePhase: false,  // Фаза подготовки
+            prePhase: false,
             timer: 0,
-            duration: 120,    // Увеличиваем длительность до 120 кадров (примерно 2 секунды)
-            preTimer: 0,      // Таймер для предварительной фазы
-            preDuration: 180, // 3 секунды подготовки (60 кадров = 1 секунда)
+            duration: 120,
+            preTimer: 0,
+            preDuration: 180,
             scale: 1,
             opacity: 0,
             triggered: false,
+            lastTriggerScore: 0,  // Добавляем отслеживание последнего срабатывания
             sound: new Audio('napryajennyiy-zvuk.mp3')
         };
         
@@ -245,6 +246,7 @@ class Game {
         this.jumpscare.scale = 1;
         this.jumpscare.opacity = 0;
         this.jumpscare.triggered = false;
+        this.jumpscare.lastTriggerScore = 0;
         
         // Останавливаем звук скримера если он играет
         this.jumpscare.sound.pause();
@@ -392,7 +394,13 @@ class Game {
         }
         
         // Проверяем условие для начала предварительной фазы скримера
-        if(!this.jumpscare.triggered && !this.jumpscare.prePhase && this.score >= 4800) { // Начинаем за 200 очков до 5000
+        const nextScrimerScore = Math.ceil(this.score / 5000) * 5000;  // Следующая отметка 5000
+        const preScrimerScore = nextScrimerScore - 200;  // За 200 очков до следующей отметки
+        
+        if(!this.jumpscare.triggered && 
+           !this.jumpscare.prePhase && 
+           this.score >= preScrimerScore && 
+           nextScrimerScore > this.jumpscare.lastTriggerScore) {
             this.jumpscare.prePhase = true;
             // Запускаем звук
             this.jumpscare.sound.play().catch(e => console.log('Audio play failed:', e));
@@ -402,11 +410,12 @@ class Game {
         if(this.jumpscare.prePhase && !this.jumpscare.active) {
             this.jumpscare.preTimer++;
             
-            // Делаем экран немного темнее и добавляем пульсацию
-            if(this.jumpscare.preTimer >= this.jumpscare.preDuration || this.score >= 5000) {
+            // Активируем скример если достигли нужного времени или счета
+            if(this.jumpscare.preTimer >= this.jumpscare.preDuration || this.score >= nextScrimerScore) {
                 this.jumpscare.prePhase = false;
                 this.jumpscare.active = true;
                 this.jumpscare.triggered = true;
+                this.jumpscare.lastTriggerScore = nextScrimerScore;
             }
         }
         
@@ -414,20 +423,21 @@ class Game {
         if(this.jumpscare.active) {
             this.jumpscare.timer++;
             
-            if(this.jumpscare.timer < 30) {  // Увеличиваем время появления
+            if(this.jumpscare.timer < 30) {
                 // Медленное появление
                 this.jumpscare.opacity = this.jumpscare.timer / 30;
                 this.jumpscare.scale = 1 + (this.jumpscare.timer / 15);
             } else if(this.jumpscare.timer < this.jumpscare.duration - 30) {
                 // Держим дольше
                 this.jumpscare.opacity = 1;
-                this.jumpscare.scale = 3 + Math.sin(this.jumpscare.timer * 0.1) * 0.2; // Добавляем пульсацию
+                this.jumpscare.scale = 3 + Math.sin(this.jumpscare.timer * 0.1) * 0.2;
             } else if(this.jumpscare.timer < this.jumpscare.duration) {
                 // Медленное исчезновение
                 this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 30;
             } else {
                 // Завершение скримера
                 this.jumpscare.active = false;
+                this.jumpscare.triggered = false;  // Разрешаем новый скример
                 // Останавливаем звук
                 this.jumpscare.sound.pause();
                 this.jumpscare.sound.currentTime = 0;
