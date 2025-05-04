@@ -45,4 +45,26 @@ button {
 
 button:hover {
     background-color: #45a049;
+}
+
+.music-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    z-index: 1000;
+    transition: background-color 0.3s;
+}
+
+.music-button:hover {
+    background-color: rgba(255, 255, 255, 1);
 } 

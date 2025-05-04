@@ -83,15 +83,31 @@ class Game {
             scale: 1,
             opacity: 0,
             triggered: false,
-            lastTriggerScore: 0,  // Добавляем отслеживание последнего срабатывания
-            sound: new Audio('napryajennyiy-zvuk.mp3')
+            lastTriggerScore: 0,
+            sound: new Audio('napryajennyiy-zvuk.mp3'),
+            originalMusicVolume: 0.5  // Сохраняем оригинальную громкость музыки
         };
         
         // Предзагружаем звук и устанавливаем максимальную громкость
         this.jumpscare.sound.load();
         this.jumpscare.sound.volume = 1.0;  // Максимальная громкость
         
+        // Добавляем фоновую музыку
+        this.backgroundMusic = new Audio('standoff 2.mp3');
+        this.backgroundMusic.loop = true;  // Зацикливаем музыку
+        this.backgroundMusic.volume = 0.5; // Начальная громкость
+        
+        // Флаг для отслеживания состояния музыки
+        this.isMusicPlaying = false;
+        
+        // Добавляем управление музыкой
+        this.musicButton = document.getElementById('musicToggle');
+        this.musicButton.addEventListener('click', () => this.toggleMusic());
+        
         this.startNewGame();
+        
+        // Запускаем фоновую музыку
+        this.playBackgroundMusic();
     }
     
     setupCanvas() {
@@ -401,9 +417,19 @@ class Game {
            !this.jumpscare.prePhase && 
            this.score >= preScrimerScore && 
            nextScrimerScore > this.jumpscare.lastTriggerScore &&
-           (nextScrimerScore === 10000 || nextScrimerScore === 15000)) {  // Добавляем проверку на конкретные значения
+           (nextScrimerScore === 5000 || nextScrimerScore === 10000 || nextScrimerScore === 15000)) {  // Добавляем все нужные значения
             this.jumpscare.prePhase = true;
-            // Запускаем звук
+            // Сохраняем текущую громкость музыки
+            this.jumpscare.originalMusicVolume = this.backgroundMusic.volume;
+            // Постепенно уменьшаем громкость фоновой музыки
+            const fadeOutInterval = setInterval(() => {
+                if(this.backgroundMusic.volume > 0.1) {
+                    this.backgroundMusic.volume -= 0.1;
+                } else {
+                    clearInterval(fadeOutInterval);
+                }
+            }, 100);
+            // Запускаем звук скримера
             this.jumpscare.sound.play().catch(e => console.log('Audio play failed:', e));
         }
         
@@ -436,12 +462,19 @@ class Game {
                 // Медленное исчезновение
                 this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 30;
             } else {
-                // Завершение скримера
                 this.jumpscare.active = false;
-                this.jumpscare.triggered = false;  // Разрешаем новый скример
-                // Останавливаем звук
+                this.jumpscare.triggered = false;
+                // Останавливаем звук скримера
                 this.jumpscare.sound.pause();
                 this.jumpscare.sound.currentTime = 0;
+                // Восстанавливаем громкость фоновой музыки
+                const fadeInInterval = setInterval(() => {
+                    if(this.backgroundMusic.volume < this.jumpscare.originalMusicVolume) {
+                        this.backgroundMusic.volume += 0.1;
+                    } else {
+                        clearInterval(fadeInInterval);
+                    }
+                }, 100);
             }
         }
     }
@@ -805,6 +838,28 @@ class Game {
             this.enemy.platform = platform;
             this.enemy.x = platform.x + platform.width/2 - this.enemy.width/2;
             this.enemy.y = platform.y;
+        }
+    }
+
+    // Добавляем метод для управления фоновой музыкой
+    playBackgroundMusic() {
+        this.backgroundMusic.play()
+            .then(() => {
+                this.isMusicPlaying = true;
+            })
+            .catch(e => console.log('Background music play failed:', e));
+    }
+
+    // Добавляем метод для переключения музыки
+    toggleMusic() {
+        if (this.isMusicPlaying) {
+            this.backgroundMusic.pause();
+            this.isMusicPlaying = false;
+            this.musicButton.querySelector('.music-icon').textContent = '🔈';
+        } else {
+            this.backgroundMusic.play();
+            this.isMusicPlaying = true;
+            this.musicButton.querySelector('.music-icon').textContent = '��';
         }
     }
 }
