@@ -3,17 +3,21 @@ class Game {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         
-        // Адаптивный размер canvas
+        // Определяем, является ли устройство мобильным
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Настраиваем размер канваса
         this.setupCanvas();
         
-        // Обработчик изменения размера окна
-        window.addEventListener('resize', () => this.setupCanvas());
+        // Добавляем обработчик изменения размера окна
+        window.addEventListener('resize', () => {
+            this.setupCanvas();
+            // Перерисовываем градиенты после изменения размера
+            this.createGradients();
+        });
         
         // ID анимации для отмены
         this.animationId = null;
-        
-        // Устанавливаем константы для физики в зависимости от устройства
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         // Возвращаем стандартные параметры физики для всех устройств
         this.INITIAL_JUMP_FORCE = -15;
@@ -83,7 +87,8 @@ class Game {
             scale: 1,
             opacity: 0,
             triggered: false,
-            lastTriggerScore: 0,  // Добавляем отслеживание последнего срабатывания
+            lastTriggerScore: 0,
+            nextTriggerScore: 5000,  // Добавляем следующую цель
             sound: new Audio('napryajennyiy-zvuk.mp3')
         };
         
@@ -95,29 +100,37 @@ class Game {
     }
     
     setupCanvas() {
-        // Базовое соотношение сторон
-        const baseWidth = 400;
-        const baseHeight = 600;
-        const baseRatio = baseWidth / baseHeight;
-        
-        // Получаем доступное пространство
+        // Получаем размеры окна
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
-        const windowRatio = windowWidth / windowHeight;
         
-        // Вычисляем оптимальный размер
-        let width, height;
-        if (windowRatio > baseRatio) {
-            height = Math.min(windowHeight, baseHeight);
-            width = height * baseRatio;
+        // Базовые пропорции игры
+        const gameRatio = 2/3; // Высота = 1.5 * ширина
+        
+        let canvasWidth, canvasHeight;
+        
+        if (windowHeight / windowWidth > gameRatio) {
+            // Если окно слишком высокое, ориентируемся на ширину
+            canvasWidth = Math.min(windowWidth, 400);
+            canvasHeight = canvasWidth * 1.5;
         } else {
-            width = Math.min(windowWidth, baseWidth);
-            height = width / baseRatio;
+            // Если окно слишком широкое, ориентируемся на высоту
+            canvasHeight = Math.min(windowHeight, 600);
+            canvasWidth = canvasHeight / 1.5;
         }
         
-        // Устанавливаем размеры canvas
-        this.canvas.width = width;
-        this.canvas.height = height;
+        // Устанавливаем размеры канваса
+        this.canvas.width = canvasWidth;
+        this.canvas.height = canvasHeight;
+        
+        // Масштабируем все размеры относительно базовой ширины
+        this.scale = canvasWidth / 400;
+        
+        // Обновляем размеры игровых объектов
+        if (this.player) {
+            this.player.width = 40 * this.scale;
+            this.player.height = 40 * this.scale;
+        }
         
         // Обновляем градиенты
         this.createGradients();
@@ -137,49 +150,54 @@ class Game {
     }
     
     setupControls() {
-        // Клавиатура
-        document.addEventListener('keydown', this.handleKeyDown);
-        document.addEventListener('keyup', this.handleKeyUp);
-        
-        if (this.isMobile) {
-            // Акселерометр
+        // Клавиатура для десктопа
+        if (!this.isMobile) {
+            document.addEventListener('keydown', this.handleKeyDown.bind(this));
+            document.addEventListener('keyup', this.handleKeyUp.bind(this));
+        } else {
+            // Мобильное управление через тапы на экране
+            this.canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = this.canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                
+                // Если тап на левой половине экрана
+                if (x < rect.width / 2) {
+                    this.keys.left = true;
+                    this.keys.right = false;
+                } else {
+                    // Если тап на правой половине экрана
+                    this.keys.left = false;
+                    this.keys.right = true;
+                }
+            });
+
+            this.canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                // При отпускании останавливаем движение
+                this.keys.left = false;
+                this.keys.right = false;
+            });
+            
+            // Добавляем поддержку акселерометра как дополнительный способ управления
             if (window.DeviceOrientationEvent) {
                 window.addEventListener('deviceorientation', (e) => {
-                    this.handleOrientation(e);
+                    if (e.gamma === null) return;
+                    
+                    const tiltThreshold = 10;
+                    if (e.gamma < -tiltThreshold) {
+                        this.keys.left = true;
+                        this.keys.right = false;
+                    } else if (e.gamma > tiltThreshold) {
+                        this.keys.left = false;
+                        this.keys.right = true;
+                    } else {
+                        // В нейтральном положении не перезаписываем значения,
+                        // чтобы не конфликтовать с тапами
+                    }
                 });
             }
-            
-            // Кнопки управления
-            const leftButton = document.getElementById('leftButton');
-            const rightButton = document.getElementById('rightButton');
-            
-            // Обработчики для сенсорного управления
-            leftButton.addEventListener('touchstart', () => this.keys.left = true);
-            leftButton.addEventListener('touchend', () => this.keys.left = false);
-            rightButton.addEventListener('touchstart', () => this.keys.right = true);
-            rightButton.addEventListener('touchend', () => this.keys.right = false);
-            
-            // Предотвращаем стандартные действия браузера
-            leftButton.addEventListener('touchstart', (e) => e.preventDefault());
-            rightButton.addEventListener('touchstart', (e) => e.preventDefault());
-        }
-    }
-    
-    handleOrientation(event) {
-        if (event.gamma === null) return;
-        
-        // Более мягкое управление наклоном для мобильных устройств
-        const tiltThreshold = 10; // Возвращаем исходный порог наклона
-        
-        if (event.gamma < -tiltThreshold) {
-            this.keys.left = true;
-            this.keys.right = false;
-        } else if (event.gamma > tiltThreshold) {
-            this.keys.left = false;
-            this.keys.right = true;
-        } else {
-            this.keys.left = false;
-            this.keys.right = false;
         }
     }
     
@@ -247,6 +265,7 @@ class Game {
         this.jumpscare.opacity = 0;
         this.jumpscare.triggered = false;
         this.jumpscare.lastTriggerScore = 0;
+        this.jumpscare.nextTriggerScore = 5000;
         
         // Останавливаем звук скримера если он играет
         this.jumpscare.sound.pause();
@@ -394,28 +413,33 @@ class Game {
         }
         
         // Проверяем условие для начала предварительной фазы скримера
-        const nextScrimerScore = Math.ceil(this.score / 5000) * 5000;  // Следующая отметка 5000
-        const preScrimerScore = nextScrimerScore - 200;  // За 200 очков до следующей отметки
+        const preScrimerScore = this.jumpscare.nextTriggerScore - 200;
         
-        if(!this.jumpscare.triggered && 
-           !this.jumpscare.prePhase && 
+        // Проверяем нужно ли начать предварительную фазу
+        if(!this.jumpscare.prePhase && 
+           !this.jumpscare.active && 
            this.score >= preScrimerScore && 
-           nextScrimerScore > this.jumpscare.lastTriggerScore) {
+           this.score < this.jumpscare.nextTriggerScore) {
+            console.log('Starting pre-phase at score:', this.score); // Для отладки
             this.jumpscare.prePhase = true;
+            this.jumpscare.triggered = false;
             // Запускаем звук
             this.jumpscare.sound.play().catch(e => console.log('Audio play failed:', e));
         }
         
         // Обновляем предварительную фазу
-        if(this.jumpscare.prePhase && !this.jumpscare.active) {
+        if(this.jumpscare.prePhase) {
             this.jumpscare.preTimer++;
             
             // Активируем скример если достигли нужного времени или счета
-            if(this.jumpscare.preTimer >= this.jumpscare.preDuration || this.score >= nextScrimerScore) {
+            if(this.jumpscare.preTimer >= this.jumpscare.preDuration || 
+               this.score >= this.jumpscare.nextTriggerScore) {
+                console.log('Activating jumpscare at score:', this.score); // Для отладки
                 this.jumpscare.prePhase = false;
                 this.jumpscare.active = true;
                 this.jumpscare.triggered = true;
-                this.jumpscare.lastTriggerScore = nextScrimerScore;
+                this.jumpscare.lastTriggerScore = this.jumpscare.nextTriggerScore;
+                this.jumpscare.nextTriggerScore += 5000; // Устанавливаем следующую цель
             }
         }
         
@@ -436,8 +460,10 @@ class Game {
                 this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 30;
             } else {
                 // Завершение скримера
+                console.log('Finishing jumpscare, next target:', this.jumpscare.nextTriggerScore); // Для отладки
                 this.jumpscare.active = false;
-                this.jumpscare.triggered = false;  // Разрешаем новый скример
+                this.jumpscare.timer = 0;
+                this.jumpscare.preTimer = 0;
                 // Останавливаем звук
                 this.jumpscare.sound.pause();
                 this.jumpscare.sound.currentTime = 0;
@@ -458,7 +484,7 @@ class Game {
         this.ctx.rotate(rotation);
 
         // Размеры частей тела
-        const headRadius = this.player.width/2;
+        const headRadius = this.player.width/2 * this.scale;
         const legWidth = headRadius/2;
         const legHeight = headRadius;
         const bootHeight = headRadius/2;
@@ -778,6 +804,13 @@ class Game {
             
             // Рисуем злого Кенито
             this.drawEvilKenitoJumpscare();
+        }
+        
+        // Для отладки показываем следующую цель скримера
+        if(this.jumpscare.prePhase || this.jumpscare.active) {
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = '14px Arial';
+            this.ctx.fillText(`Next Jumpscare: ${this.jumpscare.nextTriggerScore}`, 10, 50);
         }
     }
     
