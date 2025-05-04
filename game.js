@@ -16,6 +16,9 @@ class Game {
             this.createGradients();
         });
         
+        // Исправляем высоту для мобильных браузеров
+        this.fixMobileHeight();
+        
         // ID анимации для отмены
         this.animationId = null;
         
@@ -105,6 +108,17 @@ class Game {
         this.startNewGame();
     }
     
+    fixMobileHeight() {
+        // Исправляем проблему с высотой на мобильных устройствах
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+
+        window.addEventListener('resize', () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        });
+    }
+    
     setupCanvas() {
         // Получаем размеры окна
         const windowWidth = window.innerWidth;
@@ -114,19 +128,27 @@ class Game {
         this.canvas.width = windowWidth;
         this.canvas.height = windowHeight;
         
-        // Вычисляем масштаб относительно базового размера
-        const baseWidth = 400;
-        const baseHeight = 600;
-        
-        // Выбираем масштаб, который заполнит весь экран, сохраняя пропорции
-        const scaleX = windowWidth / baseWidth;
-        const scaleY = windowHeight / baseHeight;
-        this.scale = Math.max(scaleX, scaleY);
-        
-        // Обновляем размеры игровых объектов
-        if (this.player) {
-            this.player.width = 40 * this.scale;
-            this.player.height = 40 * this.scale;
+        // Вычисляем масштаб для мобильных устройств
+        if (this.isMobile) {
+            const baseWidth = 400;
+            const baseHeight = 600;
+            const scaleX = windowWidth / baseWidth;
+            const scaleY = windowHeight / baseHeight;
+            this.scale = Math.min(scaleX, scaleY);
+
+            // Адаптируем размеры игровых объектов
+            if (this.player) {
+                this.player.width = 40 * this.scale;
+                this.player.height = 40 * this.scale;
+            }
+
+            // Адаптируем размеры платформ
+            if (this.platforms) {
+                this.platforms.forEach(platform => {
+                    platform.width = 60 * this.scale;
+                    platform.height = 15 * this.scale;
+                });
+            }
         }
         
         // Обновляем градиенты
@@ -151,32 +173,34 @@ class Game {
         if (!this.isMobile) {
             document.addEventListener('keydown', this.handleKeyDown.bind(this));
             document.addEventListener('keyup', this.handleKeyUp.bind(this));
-        } else {
-            // Мобильное управление через тапы на экране
-            this.canvas.addEventListener('touchstart', (e) => {
+        }
+
+        // Мобильное управление
+        const leftButton = document.getElementById('leftButton');
+        const rightButton = document.getElementById('rightButton');
+
+        // Обработчики для кнопок
+        if (this.isMobile) {
+            // Левая кнопка
+            leftButton.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                const touch = e.touches[0];
-                const rect = this.canvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                
-                // Если тап на левой половине экрана
-                if (x < rect.width / 2) {
-                    this.keys.left = true;
-                    this.keys.right = false;
-                } else {
-                    // Если тап на правой половине экрана
-                    this.keys.left = false;
-                    this.keys.right = true;
-                }
+                this.keys.left = true;
+            });
+            leftButton.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.keys.left = false;
             });
 
-            this.canvas.addEventListener('touchend', (e) => {
+            // Правая кнопка
+            rightButton.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                // При отпускании останавливаем движение
-                this.keys.left = false;
+                this.keys.right = true;
+            });
+            rightButton.addEventListener('touchend', (e) => {
+                e.preventDefault();
                 this.keys.right = false;
             });
-            
+
             // Добавляем поддержку акселерометра как дополнительный способ управления
             if (window.DeviceOrientationEvent) {
                 window.addEventListener('deviceorientation', (e) => {
@@ -191,7 +215,7 @@ class Game {
                         this.keys.right = true;
                     } else {
                         // В нейтральном положении не перезаписываем значения,
-                        // чтобы не конфликтовать с тапами
+                        // чтобы не конфликтовать с кнопками
                     }
                 });
             }
@@ -304,18 +328,18 @@ class Game {
     update() {
         if(this.gameOver) return;
 
-        // Обновляем физику персонажа с более плавным ускорением
+        // Обновляем физику персонажа с адаптацией под мобильные устройства
         this.player.velocityY += this.gravity;
         
-        // Возвращаем стандартное управление для всех устройств
+        // Адаптивное управление
         if(this.keys.left) {
-            this.player.velocityX -= this.moveSpeed;
+            this.player.velocityX -= this.moveSpeed * (this.isMobile ? 1.5 : 1);
             this.player.rotation = -0.2;
         } else if(this.keys.right) {
-            this.player.velocityX += this.moveSpeed;
+            this.player.velocityX += this.moveSpeed * (this.isMobile ? 1.5 : 1);
             this.player.rotation = 0.2;
         } else {
-            this.player.velocityX *= 0.95;  // Стандартное трение
+            this.player.velocityX *= 0.95;
             this.player.rotation = 0;
         }
         
