@@ -75,16 +75,20 @@ class Game {
         // Добавляем параметры для скримера
         this.jumpscare = {
             active: false,
+            prePhase: false,  // Фаза подготовки
             timer: 0,
-            duration: 40,  // Длительность в кадрах
+            duration: 120,    // Увеличиваем длительность до 120 кадров (примерно 2 секунды)
+            preTimer: 0,      // Таймер для предварительной фазы
+            preDuration: 180, // 3 секунды подготовки (60 кадров = 1 секунда)
             scale: 1,
             opacity: 0,
             triggered: false,
-            sound: new Audio('napryajennyiy-zvuk.mp3')  // Используем наш звуковой файл
+            sound: new Audio('napryajennyiy-zvuk.mp3')
         };
         
-        // Предзагружаем звук
+        // Предзагружаем звук и устанавливаем максимальную громкость
         this.jumpscare.sound.load();
+        this.jumpscare.sound.volume = 1.0;  // Максимальная громкость
         
         this.startNewGame();
     }
@@ -235,7 +239,9 @@ class Game {
         
         // Сбрасываем параметры скримера
         this.jumpscare.active = false;
+        this.jumpscare.prePhase = false;
         this.jumpscare.timer = 0;
+        this.jumpscare.preTimer = 0;
         this.jumpscare.scale = 1;
         this.jumpscare.opacity = 0;
         this.jumpscare.triggered = false;
@@ -385,38 +391,46 @@ class Game {
             setTimeout(() => this.startNewGame(), 1000);
         }
         
-        // Проверяем условие для скримера
-        if(!this.jumpscare.triggered && this.score >= 5000) {
-            this.jumpscare.active = true;
-            this.jumpscare.triggered = true;
-            // Воспроизводим звук
+        // Проверяем условие для начала предварительной фазы скримера
+        if(!this.jumpscare.triggered && !this.jumpscare.prePhase && this.score >= 4800) { // Начинаем за 200 очков до 5000
+            this.jumpscare.prePhase = true;
+            // Запускаем звук
             this.jumpscare.sound.play().catch(e => console.log('Audio play failed:', e));
+        }
+        
+        // Обновляем предварительную фазу
+        if(this.jumpscare.prePhase && !this.jumpscare.active) {
+            this.jumpscare.preTimer++;
+            
+            // Делаем экран немного темнее и добавляем пульсацию
+            if(this.jumpscare.preTimer >= this.jumpscare.preDuration || this.score >= 5000) {
+                this.jumpscare.prePhase = false;
+                this.jumpscare.active = true;
+                this.jumpscare.triggered = true;
+            }
         }
         
         // Обновляем анимацию скримера
         if(this.jumpscare.active) {
             this.jumpscare.timer++;
             
-            if(this.jumpscare.timer < 10) {
-                // Быстрое появление
-                this.jumpscare.opacity = this.jumpscare.timer / 10;
-                this.jumpscare.scale = 1 + (this.jumpscare.timer / 5);
-            } else if(this.jumpscare.timer < this.jumpscare.duration - 10) {
-                // Держим
+            if(this.jumpscare.timer < 30) {  // Увеличиваем время появления
+                // Медленное появление
+                this.jumpscare.opacity = this.jumpscare.timer / 30;
+                this.jumpscare.scale = 1 + (this.jumpscare.timer / 15);
+            } else if(this.jumpscare.timer < this.jumpscare.duration - 30) {
+                // Держим дольше
                 this.jumpscare.opacity = 1;
-                this.jumpscare.scale = 3;
+                this.jumpscare.scale = 3 + Math.sin(this.jumpscare.timer * 0.1) * 0.2; // Добавляем пульсацию
             } else if(this.jumpscare.timer < this.jumpscare.duration) {
-                // Исчезновение
-                this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 10;
-                // Уменьшаем громкость звука
-                this.jumpscare.sound.volume = (this.jumpscare.duration - this.jumpscare.timer) / 10;
+                // Медленное исчезновение
+                this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 30;
             } else {
                 // Завершение скримера
                 this.jumpscare.active = false;
                 // Останавливаем звук
                 this.jumpscare.sound.pause();
                 this.jumpscare.sound.currentTime = 0;
-                this.jumpscare.sound.volume = 1;
             }
         }
     }
@@ -728,10 +742,28 @@ class Game {
             this.ctx.fillText(`Финальный счет: ${Math.floor(this.score)}`, this.canvas.width/2, this.canvas.height/2 + 40);
         }
         
-        // Рисуем скример поверх всего
+        // Рисуем эффект предварительной фазы
+        if(this.jumpscare.prePhase) {
+            // Затемняем экран пульсирующим красным
+            const alpha = 0.1 + Math.sin(this.jumpscare.preTimer * 0.1) * 0.05;
+            this.ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        
+        // Рисуем скример
         if(this.jumpscare.active) {
-            // Затемняем фон
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            // Более сильное затемнение фона
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Добавляем красную виньетку
+            const gradient = this.ctx.createRadialGradient(
+                this.canvas.width/2, this.canvas.height/2, 0,
+                this.canvas.width/2, this.canvas.height/2, this.canvas.width/2
+            );
+            gradient.addColorStop(0, 'rgba(255, 0, 0, 0)');
+            gradient.addColorStop(1, `rgba(255, 0, 0, ${this.jumpscare.opacity * 0.5})`);
+            this.ctx.fillStyle = gradient;
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
             
             // Рисуем злого Кенито
