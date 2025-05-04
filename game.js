@@ -79,6 +79,20 @@ class Game {
         // Настраиваем управление
         this.setupControls();
         
+        // Добавляем параметры для скримера
+        this.jumpscare = {
+            active: false,
+            timer: 0,
+            duration: 40,  // Длительность в кадрах
+            scale: 1,
+            opacity: 0,
+            triggered: false,
+            sound: new Audio('data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==') // Пустой звук как заглушка
+        };
+        
+        // Загружаем звук скримера
+        this.loadJumpscareSound();
+        
         this.startNewGame();
     }
     
@@ -230,6 +244,13 @@ class Game {
         this.enemy.nextSpawnScore = 1000;
         this.enemy.lastSpawnScore = 0;
         
+        // Сбрасываем параметры скримера
+        this.jumpscare.active = false;
+        this.jumpscare.timer = 0;
+        this.jumpscare.scale = 1;
+        this.jumpscare.opacity = 0;
+        this.jumpscare.triggered = false;
+        
         // Запускаем новый игровой цикл
         this.gameLoop();
     }
@@ -379,6 +400,34 @@ class Game {
             this.gameOver = true;
             setTimeout(() => this.startNewGame(), 1000);
         }
+        
+        // Проверяем условие для скримера
+        if(!this.jumpscare.triggered && this.score >= 5000) {
+            this.jumpscare.active = true;
+            this.jumpscare.triggered = true;
+            this.jumpscare.sound.play().catch(e => console.log('Audio play failed:', e));
+        }
+        
+        // Обновляем анимацию скримера
+        if(this.jumpscare.active) {
+            this.jumpscare.timer++;
+            
+            if(this.jumpscare.timer < 10) {
+                // Быстрое появление
+                this.jumpscare.opacity = this.jumpscare.timer / 10;
+                this.jumpscare.scale = 1 + (this.jumpscare.timer / 5);
+            } else if(this.jumpscare.timer < this.jumpscare.duration - 10) {
+                // Держим
+                this.jumpscare.opacity = 1;
+                this.jumpscare.scale = 3;
+            } else if(this.jumpscare.timer < this.jumpscare.duration) {
+                // Исчезновение
+                this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 10;
+            } else {
+                // Завершение скримера
+                this.jumpscare.active = false;
+            }
+        }
     }
     
     checkCollision(rect1, rect2) {
@@ -515,6 +564,69 @@ class Game {
         this.ctx.restore();
     }
 
+    drawEvilKenitoJumpscare() {
+        this.ctx.save();
+        
+        // Устанавливаем прозрачность
+        this.ctx.globalAlpha = this.jumpscare.opacity;
+        
+        // Центрируем и масштабируем
+        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.scale(this.jumpscare.scale, this.jumpscare.scale);
+        
+        // Размеры в 2 раза больше обычного
+        const headRadius = this.player.width;
+        const legWidth = headRadius/2;
+        const legHeight = headRadius;
+        const hornLength = headRadius/2;
+        
+        // Рисуем злого Кенито
+        // Тело (голова) - ярко-красного цвета
+        this.ctx.beginPath();
+        this.ctx.fillStyle = '#FF0000';
+        this.ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Рожки - темно-красные и острые
+        this.ctx.beginPath();
+        this.ctx.fillStyle = '#8B0000';
+        // Левый рожок
+        this.ctx.moveTo(-headRadius/2, -headRadius/2);
+        this.ctx.lineTo(-headRadius-hornLength, -headRadius);
+        this.ctx.lineTo(-headRadius-hornLength/2, -headRadius+hornLength/2);
+        this.ctx.fill();
+        // Правый рожок
+        this.ctx.beginPath();
+        this.ctx.moveTo(headRadius/2, -headRadius/2);
+        this.ctx.lineTo(headRadius+hornLength, -headRadius);
+        this.ctx.lineTo(headRadius+hornLength/2, -headRadius+hornLength/2);
+        this.ctx.fill();
+        
+        // Глаза - яркие желтые с красным ободком
+        this.ctx.fillStyle = '#FFD700';
+        this.ctx.strokeStyle = '#FF0000';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.arc(-headRadius/3, -headRadius/4, headRadius/3, 0, Math.PI * 2);
+        this.ctx.arc(headRadius/3, -headRadius/4, headRadius/3, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+        
+        // Злая улыбка - острые зубы
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = '#FFD700';
+        this.ctx.lineWidth = 3;
+        this.ctx.moveTo(-headRadius/2, headRadius/4);
+        for(let i = 0; i < 5; i++) {
+            const x = -headRadius/2 + (i * headRadius/2);
+            this.ctx.lineTo(x + headRadius/8, headRadius/2);
+            this.ctx.lineTo(x + headRadius/4, headRadius/4);
+        }
+        this.ctx.stroke();
+        
+        this.ctx.restore();
+    }
+
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
@@ -608,6 +720,16 @@ class Game {
             this.ctx.font = '20px Arial';
             this.ctx.fillText(`Финальный счет: ${Math.floor(this.score)}`, this.canvas.width/2, this.canvas.height/2 + 40);
         }
+        
+        // Рисуем скример поверх всего
+        if(this.jumpscare.active) {
+            // Затемняем фон
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Рисуем злого Кенито
+            this.drawEvilKenitoJumpscare();
+        }
     }
     
     drawCloud(x, y, size) {
@@ -634,6 +756,27 @@ class Game {
             this.enemy.x = platform.x + platform.width/2 - this.enemy.width/2;
             this.enemy.y = platform.y;
         }
+    }
+
+    loadJumpscareSound() {
+        // Создаем короткий резкий звук
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+        oscillator.frequency.linearRampToValueAtTime(1000, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.3);
     }
 }
 
