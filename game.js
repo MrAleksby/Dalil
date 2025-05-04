@@ -12,11 +12,22 @@ class Game {
         // ID анимации для отмены
         this.animationId = null;
         
-        // Устанавливаем константы для физики (они не будут меняться)
-        this.INITIAL_JUMP_FORCE = -15;
-        this.INITIAL_GRAVITY = 0.4;
-        this.INITIAL_MOVE_SPEED = 0.5;
-        this.INITIAL_MAX_VELOCITY = 7;
+        // Устанавливаем константы для физики в зависимости от устройства
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (this.isMobile) {
+            // Ускоренная физика для мобильных устройств
+            this.INITIAL_JUMP_FORCE = -20;    // Увеличиваем силу прыжка
+            this.INITIAL_GRAVITY = 0.8;       // Увеличиваем гравитацию
+            this.INITIAL_MOVE_SPEED = 0.8;    // Увеличиваем скорость движения
+            this.INITIAL_MAX_VELOCITY = 9;    // Увеличиваем максимальную скорость
+        } else {
+            // Стандартная физика для десктопа
+            this.INITIAL_JUMP_FORCE = -15;
+            this.INITIAL_GRAVITY = 0.4;
+            this.INITIAL_MOVE_SPEED = 0.5;
+            this.INITIAL_MAX_VELOCITY = 7;
+        }
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
@@ -59,7 +70,6 @@ class Game {
         };
         
         // Добавляем параметры для мобильного управления
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         this.accelerometer = {
             x: 0,
             y: 0,
@@ -146,14 +156,20 @@ class Game {
     handleOrientation(event) {
         if (event.gamma === null) return;
         
-        // Наклон телефона (gamma) для движения влево-вправо
-        const tiltThreshold = 10; // Порог наклона
+        // Более чувствительное управление наклоном для мобильных устройств
+        const tiltThreshold = 5; // Уменьшаем порог наклона для более быстрой реакции
+        const tiltSensitivity = 0.8; // Коэффициент чувствительности
+        
         if (event.gamma < -tiltThreshold) {
             this.keys.left = true;
             this.keys.right = false;
+            // Добавляем дополнительное ускорение при сильном наклоне
+            this.player.velocityX -= Math.abs(event.gamma) * tiltSensitivity;
         } else if (event.gamma > tiltThreshold) {
             this.keys.left = false;
             this.keys.right = true;
+            // Добавляем дополнительное ускорение при сильном наклоне
+            this.player.velocityX += Math.abs(event.gamma) * tiltSensitivity;
         } else {
             this.keys.left = false;
             this.keys.right = false;
@@ -186,11 +202,11 @@ class Game {
         };
         this.gameOver = false;
         
-        // Физика - фиксированные значения
-        this.gravity = 0.4;
-        this.jumpForce = -15;
-        this.moveSpeed = 0.5;
-        this.maxVelocityX = 7;
+        // Физика - используем значения в зависимости от устройства
+        this.gravity = this.INITIAL_GRAVITY;
+        this.jumpForce = this.INITIAL_JUMP_FORCE;
+        this.moveSpeed = this.INITIAL_MOVE_SPEED;
+        this.maxVelocityX = this.INITIAL_MAX_VELOCITY;
         
         // Управление
         this.keys = {
@@ -243,25 +259,39 @@ class Game {
     update() {
         if(this.gameOver) return;
 
-        // Обновляем физику персонажа
+        // Обновляем физику персонажа с более плавным ускорением
         this.player.velocityY += this.gravity;
         
-        // Более плавное движение влево-вправо с ускорением
-        if(this.keys.left) {
-            this.player.velocityX -= this.moveSpeed;
-            this.player.rotation = -0.2;  // Наклон влево
-        } else if(this.keys.right) {
-            this.player.velocityX += this.moveSpeed;
-            this.player.rotation = 0.2;   // Наклон вправо
+        // Более отзывчивое управление для мобильных устройств
+        if(this.isMobile) {
+            if(this.keys.left) {
+                this.player.velocityX -= this.moveSpeed * 1.2;  // Увеличенное ускорение
+                this.player.rotation = -0.2;
+            } else if(this.keys.right) {
+                this.player.velocityX += this.moveSpeed * 1.2;  // Увеличенное ускорение
+                this.player.rotation = 0.2;
+            } else {
+                this.player.velocityX *= 0.90;  // Меньше трения для более плавного движения
+                this.player.rotation = 0;
+            }
         } else {
-            this.player.velocityX *= 0.95;  // Трение
-            this.player.rotation = 0;     // Возврат к прямому положению
+            // Стандартное управление для десктопа
+            if(this.keys.left) {
+                this.player.velocityX -= this.moveSpeed;
+                this.player.rotation = -0.2;
+            } else if(this.keys.right) {
+                this.player.velocityX += this.moveSpeed;
+                this.player.rotation = 0.2;
+            } else {
+                this.player.velocityX *= 0.95;
+                this.player.rotation = 0;
+            }
         }
         
-        // Ограничиваем максимальную скорость
+        // Ограничиваем максимальную скорость с учетом устройства
         this.player.velocityX = Math.max(Math.min(this.player.velocityX, this.maxVelocityX), -this.maxVelocityX);
         
-        // Обновляем позицию
+        // Обновляем позицию с оптимизированной физикой
         this.player.x += this.player.velocityX;
         this.player.y += this.player.velocityY;
         
