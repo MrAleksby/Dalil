@@ -102,24 +102,31 @@
         .score {
             position: fixed;
             top: max(20px, var(--safe-area-top));
-            left: max(20px, var(--safe-area-left));
+            left: 50%;
+            transform: translateX(-50%);
             color: white;
             font-size: 32px;
             font-weight: bold;
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            padding: 15px 25px;
+            padding: 12px 25px;
             background: rgba(0, 0, 0, 0.6);
             border-radius: 20px;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
         }
 
         #scoreValue {
             color: #FFD700;
-            margin-left: 8px;
+            font-size: 36px;
+            min-width: 60px;
+            text-align: right;
         }
 
         @media (orientation: landscape) {
@@ -131,7 +138,7 @@
             
             .score {
                 font-size: 28px;
-                padding: 12px 20px;
+                padding: 10px 20px;
             }
             
             #musicToggle {
@@ -139,13 +146,18 @@
                 height: 50px;
                 font-size: 28px;
             }
+            
+            #scoreValue {
+                font-size: 32px;
+                min-width: 50px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
-        <div class="score">СЧЕТ<span id="scoreValue">0</span></div>
+        <div class="score">СЧЕТ <span id="scoreValue">0</span></div>
         <button id="musicToggle">🔊</button>
     </div>
     <audio id="backgroundMusic" loop>

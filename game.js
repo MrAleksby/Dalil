@@ -22,11 +22,11 @@ class Game {
         // ID анимации для отмены
         this.animationId = null;
         
-        // Возвращаем стандартные параметры физики для всех устройств
-        this.INITIAL_JUMP_FORCE = this.isMobile ? -12 : -15;
-        this.INITIAL_GRAVITY = this.isMobile ? 0.35 : 0.4;
-        this.INITIAL_MOVE_SPEED = this.isMobile ? 0.7 : 0.5;
-        this.INITIAL_MAX_VELOCITY = this.isMobile ? 9 : 7;
+        // Возвращаем стандартные параметры физики
+        this.INITIAL_JUMP_FORCE = -15;
+        this.INITIAL_GRAVITY = 0.4;
+        this.INITIAL_MOVE_SPEED = 0.5;
+        this.INITIAL_MAX_VELOCITY = 7;
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
@@ -37,7 +37,7 @@ class Game {
         
         // Добавляем параметры для плавности движения на мобильных
         this.touchSensitivity = 0.8;
-        this.movementSmoothing = this.isMobile ? 0.85 : 0.95;
+        this.movementSmoothing = 0.95;
         
         // Привязываем методы
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -367,26 +367,21 @@ class Game {
     update() {
         if(this.gameOver) return;
 
-        // Обновляем физику с учетом устройства
+        // Обновляем физику
         this.player.velocityY += this.gravity;
         
-        // Плавное управление для мобильных
-        const moveMultiplier = this.isMobile ? 1.2 : 1;
-        const frictionMultiplier = this.isMobile ? 0.92 : 0.95;
-        
+        // Стандартное управление
         if(this.keys.left) {
-            this.player.velocityX = this.player.velocityX * this.movementSmoothing - 
-                                  this.moveSpeed * moveMultiplier * (1 - this.movementSmoothing);
+            this.player.velocityX -= this.moveSpeed;
             this.player.rotation = -0.2;
         } else if(this.keys.right) {
-            this.player.velocityX = this.player.velocityX * this.movementSmoothing + 
-                                  this.moveSpeed * moveMultiplier * (1 - this.movementSmoothing);
+            this.player.velocityX += this.moveSpeed;
             this.player.rotation = 0.2;
         } else {
-            this.player.velocityX *= frictionMultiplier;
+            this.player.velocityX *= 0.95;
             this.player.rotation = 0;
         }
-        
+
         // Ограничиваем скорость
         this.player.velocityX = Math.max(Math.min(this.player.velocityX, this.maxVelocityX), -this.maxVelocityX);
         
@@ -540,15 +535,6 @@ class Game {
                 this.jumpscare.sound.pause();
                 this.jumpscare.sound.currentTime = 0;
             }
-        }
-
-        // Обновляем счет на экране с анимацией
-        const targetScore = Math.floor(this.score);
-        const currentScore = parseInt(this.scoreElement.textContent);
-        if (currentScore !== targetScore) {
-            const diff = targetScore - currentScore;
-            const step = Math.max(1, Math.abs(Math.floor(diff / 10)));
-            this.scoreElement.textContent = currentScore + Math.sign(diff) * step;
         }
     }
     
@@ -816,30 +802,6 @@ class Game {
         this.ctx.textAlign = 'center';
         this.ctx.fillText(this.logo.text, this.canvas.width / 2, 70);
         this.ctx.globalAlpha = 1.0;
-        this.ctx.restore();
-        
-        // Рисуем счет с красивым оформлением
-        this.ctx.save();
-        
-        // Фон для счета
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        this.ctx.beginPath();
-        this.ctx.roundRect(5, 5, 150, 40, 10);
-        this.ctx.fill();
-        
-        // Применяем масштабирование для анимации
-        this.ctx.translate(80, 30);
-        this.ctx.scale(this.scoreDisplay.scale, this.scoreDisplay.scale);
-        this.ctx.translate(-80, -30);
-        
-        // Рисуем текст счета
-        this.ctx.fillStyle = '#fff';
-        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        this.ctx.shadowBlur = 5;
-        this.ctx.font = 'bold 24px Arial';
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText(`СЧЕТ: ${this.scoreDisplay.current}`, 15, 32);
-        
         this.ctx.restore();
         
         // Сообщение о проигрыше
