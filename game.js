@@ -25,8 +25,8 @@ class Game {
         // Возвращаем стандартные параметры физики
         this.INITIAL_JUMP_FORCE = -15;
         this.INITIAL_GRAVITY = 0.4;
-        this.INITIAL_MOVE_SPEED = 0.5;
-        this.INITIAL_MAX_VELOCITY = 7;
+        this.INITIAL_MOVE_SPEED = 0.3;
+        this.INITIAL_MAX_VELOCITY = 4;
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
@@ -180,15 +180,13 @@ class Game {
             document.addEventListener('keydown', this.handleKeyDown.bind(this));
             document.addEventListener('keyup', this.handleKeyUp.bind(this));
         } else {
-            // Улучшенное управление касанием для мобильных
+            // Управление касанием для мобильных
             let touchStartX = 0;
-            let touchStartTime = 0;
             
             this.canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
-                touchStartTime = Date.now();
                 
                 const rect = this.canvas.getBoundingClientRect();
                 if (touchStartX < rect.width / 2) {
@@ -204,60 +202,22 @@ class Game {
                 e.preventDefault();
                 const touch = e.touches[0];
                 const currentX = touch.clientX;
-                const deltaX = currentX - touchStartX;
                 
-                // Плавное изменение направления
-                if (Math.abs(deltaX) > 10) {
-                    this.keys.left = deltaX < 0;
-                    this.keys.right = deltaX > 0;
-                    
-                    // Адаптивная скорость в зависимости от силы свайпа
-                    const swipeStrength = Math.min(Math.abs(deltaX) / 100, 1);
-                    this.moveSpeed = this.INITIAL_MOVE_SPEED * (1 + swipeStrength);
+                const rect = this.canvas.getBoundingClientRect();
+                if (currentX < rect.width / 2) {
+                    this.keys.left = true;
+                    this.keys.right = false;
+                } else {
+                    this.keys.left = false;
+                    this.keys.right = true;
                 }
             });
 
             this.canvas.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                const touchEndTime = Date.now();
-                const touchDuration = touchEndTime - touchStartTime;
-                
-                // Сброс скорости движения
-                this.moveSpeed = this.INITIAL_MOVE_SPEED;
-                
-                // Плавная остановка
-                if (touchDuration < 300) { // Короткое касание
-                    setTimeout(() => {
-                        this.keys.left = false;
-                        this.keys.right = false;
-                    }, 100);
-                } else {
-                    this.keys.left = false;
-                    this.keys.right = false;
-                }
+                this.keys.left = false;
+                this.keys.right = false;
             });
-
-            // Улучшенное управление наклоном
-            if (window.DeviceOrientationEvent) {
-                window.addEventListener('deviceorientation', (e) => {
-                    if (e.gamma === null) return;
-                    
-                    const tiltThreshold = 8; // Уменьшенный порог наклона
-                    const tiltStrength = Math.abs(e.gamma) / 45; // Сила наклона (до 45 градусов)
-                    
-                    if (e.gamma < -tiltThreshold) {
-                        this.keys.left = true;
-                        this.keys.right = false;
-                        this.moveSpeed = this.INITIAL_MOVE_SPEED * (1 + tiltStrength);
-                    } else if (e.gamma > tiltThreshold) {
-                        this.keys.left = false;
-                        this.keys.right = true;
-                        this.moveSpeed = this.INITIAL_MOVE_SPEED * (1 + tiltStrength);
-                    } else {
-                        this.moveSpeed = this.INITIAL_MOVE_SPEED;
-                    }
-                });
-            }
         }
     }
     
@@ -370,15 +330,15 @@ class Game {
         // Обновляем физику
         this.player.velocityY += this.gravity;
         
-        // Стандартное управление
+        // Стандартное управление с меньшей скоростью
         if(this.keys.left) {
             this.player.velocityX -= this.moveSpeed;
-            this.player.rotation = -0.2;
+            this.player.rotation = -0.1;
         } else if(this.keys.right) {
             this.player.velocityX += this.moveSpeed;
-            this.player.rotation = 0.2;
+            this.player.rotation = 0.1;
         } else {
-            this.player.velocityX *= 0.95;
+            this.player.velocityX *= 0.9;
             this.player.rotation = 0;
         }
 
@@ -417,6 +377,8 @@ class Game {
                 platform.y += diff;
             });
             this.score += Math.floor(diff);
+            // Обновляем отображение счета
+            this.scoreElement.textContent = Math.floor(this.score);
             
             // Анимация счета
             this.scoreDisplay.target = Math.floor(this.score);
