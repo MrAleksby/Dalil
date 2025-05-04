@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>DALIL Jump</title>
     <style>
         * {
@@ -16,106 +16,137 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --safe-area-top: env(safe-area-inset-top, 0px);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-area-left: env(safe-area-inset-left, 0px);
+            --safe-area-right: env(safe-area-inset-right, 0px);
+        }
+
+        html {
+            width: 100%;
+            height: 100%;
+            height: -webkit-fill-available;
+            overflow: hidden;
+            position: fixed;
+            background: #333;
         }
 
         body {
+            width: 100%;
+            height: 100%;
+            height: -webkit-fill-available;
             margin: 0;
             padding: 0;
-            width: 100vw;
-            height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: #333;
             overflow: hidden;
             position: fixed;
+            background: #333;
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-overflow-scrolling: touch;
         }
 
         #game-container {
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             width: 100%;
             height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #333;
+            overflow: hidden;
+            padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
         }
 
         #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
             touch-action: none;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
         #musicToggle {
             position: fixed;
-            top: env(safe-area-inset-top, 10px);
-            right: env(safe-area-inset-right, 10px);
-            width: 40px;
-            height: 40px;
+            top: max(20px, var(--safe-area-top));
+            right: max(20px, var(--safe-area-right));
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.95);
             border: none;
             cursor: pointer;
             z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background-color 0.3s;
+            font-size: 32px;
             padding: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        #mobileControls {
+        #musicToggle:active {
+            transform: scale(0.9);
+        }
+
+        .score {
             position: fixed;
-            bottom: env(safe-area-inset-bottom, 20px);
-            left: 0;
-            right: 0;
-            display: none;
-            justify-content: space-between;
-            padding: 0 20px;
+            top: max(20px, var(--safe-area-top));
+            left: max(20px, var(--safe-area-left));
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
             z-index: 1000;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
         }
 
-        .control-button {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.5);
-            border: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            color: #333;
-            touch-action: none;
+        #scoreValue {
+            color: #FFD700;
+            margin-left: 8px;
         }
 
-        @media (max-width: 768px) {
-            #mobileControls {
-                display: flex;
+        @media (orientation: landscape) {
+            #gameCanvas {
+                width: auto;
+                height: 100%;
+                margin: 0 auto;
             }
             
-            body {
-                padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            .score {
+                font-size: 28px;
+                padding: 12px 20px;
+            }
+            
+            #musicToggle {
+                width: 50px;
+                height: 50px;
+                font-size: 28px;
             }
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <button id="musicToggle">🔊</button>
         <canvas id="gameCanvas"></canvas>
-        <div id="mobileControls">
-            <button class="control-button" id="leftButton">👈</button>
-            <button class="control-button" id="rightButton">👉</button>
-        </div>
-        <div id="victory-screen" class="hidden">
-            <h1>Победа!</h1>
-            <button onclick="restartGame()">Играть снова</button>
-        </div>
+        <div class="score">СЧЕТ<span id="scoreValue">0</span></div>
+        <button id="musicToggle">🔊</button>
     </div>
     <audio id="backgroundMusic" loop>
         <source src="Standoff 2 .mp3" type="audio/mp3">

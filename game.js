@@ -2,6 +2,7 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
+        this.scoreElement = document.getElementById('scoreValue');
         
         // Определяем, является ли устройство мобильным
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -12,7 +13,6 @@ class Game {
         // Добавляем обработчик изменения размера окна
         window.addEventListener('resize', () => {
             this.setupCanvas();
-            // Перерисовываем градиенты после изменения размера
             this.createGradients();
         });
         
@@ -23,10 +23,10 @@ class Game {
         this.animationId = null;
         
         // Возвращаем стандартные параметры физики для всех устройств
-        this.INITIAL_JUMP_FORCE = -15;
-        this.INITIAL_GRAVITY = 0.4;
-        this.INITIAL_MOVE_SPEED = 0.5;
-        this.INITIAL_MAX_VELOCITY = 7;
+        this.INITIAL_JUMP_FORCE = this.isMobile ? -12 : -15;
+        this.INITIAL_GRAVITY = this.isMobile ? 0.35 : 0.4;
+        this.INITIAL_MOVE_SPEED = this.isMobile ? 0.7 : 0.5;
+        this.INITIAL_MAX_VELOCITY = this.isMobile ? 9 : 7;
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
@@ -34,6 +34,10 @@ class Game {
             target: 0,
             scale: 1
         };
+        
+        // Добавляем параметры для плавности движения на мобильных
+        this.touchSensitivity = 0.8;
+        this.movementSmoothing = this.isMobile ? 0.85 : 0.95;
         
         // Привязываем методы
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -120,35 +124,37 @@ class Game {
     }
     
     setupCanvas() {
-        // Получаем размеры окна
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
         
-        // Устанавливаем размеры канваса равными размерам окна
         this.canvas.width = windowWidth;
         this.canvas.height = windowHeight;
         
-        // Вычисляем масштаб для мобильных устройств
-        if (this.isMobile) {
-            const baseWidth = 400;
-            const baseHeight = 600;
-            const scaleX = windowWidth / baseWidth;
-            const scaleY = windowHeight / baseHeight;
-            this.scale = Math.min(scaleX, scaleY);
-
-            // Адаптируем размеры игровых объектов
-            if (this.player) {
-                this.player.width = 40 * this.scale;
-                this.player.height = 40 * this.scale;
-            }
-
-            // Адаптируем размеры платформ
-            if (this.platforms) {
-                this.platforms.forEach(platform => {
-                    platform.width = 60 * this.scale;
-                    platform.height = 15 * this.scale;
-                });
-            }
+        // Базовые размеры для масштабирования
+        const baseWidth = 400;
+        const baseHeight = 600;
+        
+        // Вычисляем масштаб, сохраняя пропорции
+        const scaleX = windowWidth / baseWidth;
+        const scaleY = windowHeight / baseHeight;
+        
+        // На мобильных используем минимальный масштаб для лучшей видимости
+        this.scale = this.isMobile ? Math.min(scaleX, scaleY) : Math.max(scaleX, scaleY);
+        
+        // Масштабируем игровые объекты
+        if (this.player) {
+            const playerBaseSize = this.isMobile ? 35 : 40;
+            this.player.width = playerBaseSize * this.scale;
+            this.player.height = playerBaseSize * this.scale;
+        }
+        
+        // Масштабируем платформы
+        if (this.platforms) {
+            const platformBaseWidth = this.isMobile ? 50 : 60;
+            this.platforms.forEach(platform => {
+                platform.width = platformBaseWidth * this.scale;
+                platform.height = 15 * this.scale;
+            });
         }
         
         // Обновляем градиенты
@@ -169,53 +175,86 @@ class Game {
     }
     
     setupControls() {
-        // Клавиатура для десктопа
         if (!this.isMobile) {
+            // Управление клавиатурой для десктопа
             document.addEventListener('keydown', this.handleKeyDown.bind(this));
             document.addEventListener('keyup', this.handleKeyUp.bind(this));
-        }
-
-        // Мобильное управление
-        const leftButton = document.getElementById('leftButton');
-        const rightButton = document.getElementById('rightButton');
-
-        // Обработчики для кнопок
-        if (this.isMobile) {
-            // Левая кнопка
-            leftButton.addEventListener('touchstart', (e) => {
+        } else {
+            // Улучшенное управление касанием для мобильных
+            let touchStartX = 0;
+            let touchStartTime = 0;
+            
+            this.canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                this.keys.left = true;
-            });
-            leftButton.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.keys.left = false;
-            });
-
-            // Правая кнопка
-            rightButton.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.keys.right = true;
-            });
-            rightButton.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.keys.right = false;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartTime = Date.now();
+                
+                const rect = this.canvas.getBoundingClientRect();
+                if (touchStartX < rect.width / 2) {
+                    this.keys.left = true;
+                    this.keys.right = false;
+                } else {
+                    this.keys.left = false;
+                    this.keys.right = true;
+                }
             });
 
-            // Добавляем поддержку акселерометра как дополнительный способ управления
+            this.canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const currentX = touch.clientX;
+                const deltaX = currentX - touchStartX;
+                
+                // Плавное изменение направления
+                if (Math.abs(deltaX) > 10) {
+                    this.keys.left = deltaX < 0;
+                    this.keys.right = deltaX > 0;
+                    
+                    // Адаптивная скорость в зависимости от силы свайпа
+                    const swipeStrength = Math.min(Math.abs(deltaX) / 100, 1);
+                    this.moveSpeed = this.INITIAL_MOVE_SPEED * (1 + swipeStrength);
+                }
+            });
+
+            this.canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                const touchEndTime = Date.now();
+                const touchDuration = touchEndTime - touchStartTime;
+                
+                // Сброс скорости движения
+                this.moveSpeed = this.INITIAL_MOVE_SPEED;
+                
+                // Плавная остановка
+                if (touchDuration < 300) { // Короткое касание
+                    setTimeout(() => {
+                        this.keys.left = false;
+                        this.keys.right = false;
+                    }, 100);
+                } else {
+                    this.keys.left = false;
+                    this.keys.right = false;
+                }
+            });
+
+            // Улучшенное управление наклоном
             if (window.DeviceOrientationEvent) {
                 window.addEventListener('deviceorientation', (e) => {
                     if (e.gamma === null) return;
                     
-                    const tiltThreshold = 10;
+                    const tiltThreshold = 8; // Уменьшенный порог наклона
+                    const tiltStrength = Math.abs(e.gamma) / 45; // Сила наклона (до 45 градусов)
+                    
                     if (e.gamma < -tiltThreshold) {
                         this.keys.left = true;
                         this.keys.right = false;
+                        this.moveSpeed = this.INITIAL_MOVE_SPEED * (1 + tiltStrength);
                     } else if (e.gamma > tiltThreshold) {
                         this.keys.left = false;
                         this.keys.right = true;
+                        this.moveSpeed = this.INITIAL_MOVE_SPEED * (1 + tiltStrength);
                     } else {
-                        // В нейтральном положении не перезаписываем значения,
-                        // чтобы не конфликтовать с кнопками
+                        this.moveSpeed = this.INITIAL_MOVE_SPEED;
                     }
                 });
             }
@@ -328,25 +367,30 @@ class Game {
     update() {
         if(this.gameOver) return;
 
-        // Обновляем физику персонажа с адаптацией под мобильные устройства
+        // Обновляем физику с учетом устройства
         this.player.velocityY += this.gravity;
         
-        // Адаптивное управление
+        // Плавное управление для мобильных
+        const moveMultiplier = this.isMobile ? 1.2 : 1;
+        const frictionMultiplier = this.isMobile ? 0.92 : 0.95;
+        
         if(this.keys.left) {
-            this.player.velocityX -= this.moveSpeed * (this.isMobile ? 1.5 : 1);
+            this.player.velocityX = this.player.velocityX * this.movementSmoothing - 
+                                  this.moveSpeed * moveMultiplier * (1 - this.movementSmoothing);
             this.player.rotation = -0.2;
         } else if(this.keys.right) {
-            this.player.velocityX += this.moveSpeed * (this.isMobile ? 1.5 : 1);
+            this.player.velocityX = this.player.velocityX * this.movementSmoothing + 
+                                  this.moveSpeed * moveMultiplier * (1 - this.movementSmoothing);
             this.player.rotation = 0.2;
         } else {
-            this.player.velocityX *= 0.95;
+            this.player.velocityX *= frictionMultiplier;
             this.player.rotation = 0;
         }
         
-        // Ограничиваем максимальную скорость
+        // Ограничиваем скорость
         this.player.velocityX = Math.max(Math.min(this.player.velocityX, this.maxVelocityX), -this.maxVelocityX);
         
-        // Обновляем позицию с оптимизированной физикой
+        // Обновляем позицию
         this.player.x += this.player.velocityX;
         this.player.y += this.player.velocityY;
         
@@ -496,6 +540,15 @@ class Game {
                 this.jumpscare.sound.pause();
                 this.jumpscare.sound.currentTime = 0;
             }
+        }
+
+        // Обновляем счет на экране с анимацией
+        const targetScore = Math.floor(this.score);
+        const currentScore = parseInt(this.scoreElement.textContent);
+        if (currentScore !== targetScore) {
+            const diff = targetScore - currentScore;
+            const step = Math.max(1, Math.abs(Math.floor(diff / 10)));
+            this.scoreElement.textContent = currentScore + Math.sign(diff) * step;
         }
     }
     
