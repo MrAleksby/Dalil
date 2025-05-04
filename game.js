@@ -92,10 +92,16 @@ class Game {
         this.jumpscare.sound.load();
         this.jumpscare.sound.volume = 1.0;  // Максимальная громкость
         
-        // Добавляем фоновую музыку
-        this.backgroundMusic = new Audio('standoff 2.mp3');
-        this.backgroundMusic.loop = true;  // Зацикливаем музыку
-        this.backgroundMusic.volume = 0.5; // Начальная громкость
+        // Добавляем фоновую музыку с обработкой ошибок
+        this.backgroundMusic = new Audio('standoff%202.mp3');  // Используем URL-кодирование для пробела
+        this.backgroundMusic.loop = true;
+        this.backgroundMusic.volume = 0.5;
+        
+        // Добавляем обработчик ошибок для музыки
+        this.backgroundMusic.addEventListener('error', (e) => {
+            console.error('Ошибка загрузки музыки:', e);
+            console.log('Путь к файлу:', this.backgroundMusic.src);
+        });
         
         // Флаг для отслеживания состояния музыки
         this.isMusicPlaying = false;
@@ -841,13 +847,29 @@ class Game {
         }
     }
 
-    // Добавляем метод для управления фоновой музыкой
+    // Обновляем метод воспроизведения музыки
     playBackgroundMusic() {
-        this.backgroundMusic.play()
-            .then(() => {
-                this.isMusicPlaying = true;
-            })
-            .catch(e => console.log('Background music play failed:', e));
+        // Пробуем воспроизвести музыку с разными вариантами пути к файлу
+        const playAttempt = this.backgroundMusic.play();
+        
+        if (playAttempt !== undefined) {
+            playAttempt
+                .then(() => {
+                    this.isMusicPlaying = true;
+                    console.log('Музыка успешно запущена');
+                })
+                .catch(e => {
+                    console.error('Ошибка воспроизведения:', e);
+                    // Пробуем альтернативный путь к файлу
+                    this.backgroundMusic.src = 'standoff 2.mp3';
+                    return this.backgroundMusic.play();
+                })
+                .then(() => {
+                    this.isMusicPlaying = true;
+                    console.log('Музыка запущена с альтернативным путём');
+                })
+                .catch(e => console.error('Все попытки воспроизведения не удались:', e));
+        }
     }
 
     // Добавляем метод для переключения музыки
@@ -859,7 +881,7 @@ class Game {
         } else {
             this.backgroundMusic.play();
             this.isMusicPlaying = true;
-            this.musicButton.querySelector('.music-icon').textContent = '��';
+            this.musicButton.querySelector('.music-icon').textContent = '🔊';
         }
     }
 }
