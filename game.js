@@ -83,7 +83,7 @@ class Game {
             scale: 1,
             opacity: 0,
             triggered: false,
-            lastTriggerScore: 0,
+            nextTriggerScore: 5000,  // Изменяем: теперь храним следующую отметку для скримера
             sound: new Audio('napryajennyiy-zvuk.mp3'),
             originalMusicVolume: 0.5  // Сохраняем оригинальную громкость музыки
         };
@@ -92,28 +92,10 @@ class Game {
         this.jumpscare.sound.load();
         this.jumpscare.sound.volume = 1.0;  // Максимальная громкость
         
-        // Добавляем фоновую музыку с обработкой ошибок
-        this.backgroundMusic = new Audio('standoff%202.mp3');  // Используем URL-кодирование для пробела
-        this.backgroundMusic.loop = true;
-        this.backgroundMusic.volume = 0.5;
-        
-        // Добавляем обработчик ошибок для музыки
-        this.backgroundMusic.addEventListener('error', (e) => {
-            console.error('Ошибка загрузки музыки:', e);
-            console.log('Путь к файлу:', this.backgroundMusic.src);
-        });
-        
-        // Флаг для отслеживания состояния музыки
-        this.isMusicPlaying = false;
-        
-        // Добавляем управление музыкой
-        this.musicButton = document.getElementById('musicToggle');
-        this.musicButton.addEventListener('click', () => this.toggleMusic());
+        // Инициализация аудио
+        this.initializeAudio();
         
         this.startNewGame();
-        
-        // Запускаем фоновую музыку
-        this.playBackgroundMusic();
     }
     
     setupCanvas() {
@@ -224,6 +206,17 @@ class Game {
             this.animationId = null;
         }
 
+        // Принудительно останавливаем звук скримера и восстанавливаем музыку
+        if (this.jumpscare && this.jumpscare.sound) {
+            this.jumpscare.sound.pause();
+            this.jumpscare.sound.currentTime = 0;
+        }
+        
+        // Восстанавливаем громкость фоновой музыки
+        if (this.backgroundMusic) {
+            this.backgroundMusic.volume = 0.5;
+        }
+
         // Персонаж
         this.player = {
             x: this.canvas.width / 2,
@@ -232,7 +225,7 @@ class Game {
             height: 40,
             velocityY: -15,
             velocityX: 0,
-            rotation: 0  // Для наклона персонажа
+            rotation: 0
         };
         
         // Игровые параметры
@@ -243,7 +236,7 @@ class Game {
         };
         this.gameOver = false;
         
-        // Физика - используем значения в зависимости от устройства
+        // Физика
         this.gravity = this.INITIAL_GRAVITY;
         this.jumpForce = this.INITIAL_JUMP_FORCE;
         this.moveSpeed = this.INITIAL_MOVE_SPEED;
@@ -263,6 +256,32 @@ class Game {
             alpha: 0.2  // Прозрачность логотипа
         };
         
+        // Сбрасываем параметры скримера
+        this.jumpscare = {
+            active: false,
+            prePhase: false,
+            timer: 0,
+            duration: 120,
+            preTimer: 0,
+            preDuration: 180,
+            scale: 1,
+            opacity: 0,
+            triggered: false,
+            nextTriggerScore: 5000,
+            sound: this.jumpscare ? this.jumpscare.sound : new Audio('napryajennyiy-zvuk.mp3')
+        };
+        
+        // Восстанавливаем музыку если она была включена
+        if (this.hasUserInteracted) {
+            this.backgroundMusic.currentTime = 0;
+            if (!this.isMusicPlaying) {
+                this.playBackgroundMusic();
+            } else {
+                // Если музыка уже играет, просто убеждаемся, что громкость правильная
+                this.backgroundMusic.play().catch(e => console.log('Music resume failed:', e));
+            }
+        }
+        
         // Создаем платформы
         this.createPlatforms();
         
@@ -271,20 +290,6 @@ class Game {
         this.enemy.nextSpawnScore = 800;  // Начинаем с 800 очков
         this.enemy.lastSpawnScore = 0;
         this.enemy.warningAlpha = 0;
-        
-        // Сбрасываем параметры скримера
-        this.jumpscare.active = false;
-        this.jumpscare.prePhase = false;
-        this.jumpscare.timer = 0;
-        this.jumpscare.preTimer = 0;
-        this.jumpscare.scale = 1;
-        this.jumpscare.opacity = 0;
-        this.jumpscare.triggered = false;
-        this.jumpscare.lastTriggerScore = 0;
-        
-        // Останавливаем звук скримера если он играет
-        this.jumpscare.sound.pause();
-        this.jumpscare.sound.currentTime = 0;
         
         // Запускаем новый игровой цикл
         this.gameLoop();
@@ -313,7 +318,20 @@ class Game {
     }
     
     update() {
-        if(this.gameOver) return;
+        if(this.gameOver) {
+            // Если игра окончена, останавливаем скример немедленно
+            if(this.jumpscare.active || this.jumpscare.prePhase) {
+                this.jumpscare.active = false;
+                this.jumpscare.prePhase = false;
+                this.jumpscare.sound.pause();
+                this.jumpscare.sound.currentTime = 0;
+                // Восстанавливаем громкость фоновой музыки
+                if(this.backgroundMusic) {
+                    this.backgroundMusic.volume = 0.5;
+                }
+            }
+            return;
+        }
 
         // Обновляем физику персонажа с более плавным ускорением
         this.player.velocityY += this.gravity;
@@ -392,9 +410,9 @@ class Game {
         }
         
         // Проверяем необходимость создания противника
-        // Появляемся за 200 очков до следующей тысячи
+        // Появляемся за 400 очков до следующей тысячи (увеличили с 200 до 400)
         const nextThousand = Math.ceil(this.score / 1000) * 1000;
-        const spawnThreshold = nextThousand - 200;
+        const spawnThreshold = nextThousand - 400;
         
         if(!this.enemy.active && this.score >= spawnThreshold && this.score < nextThousand && spawnThreshold > this.enemy.lastSpawnScore) {
             this.enemy.lastSpawnScore = spawnThreshold;
@@ -405,16 +423,21 @@ class Game {
         if(this.enemy.active) {
             this.enemy.y = this.enemy.platform.y;
             
-            // Мигающий эффект предупреждения
-            this.enemy.warningAlpha = 0.5 + Math.sin(Date.now() / 200) * 0.2;
+            // Более плавное и заметное мигание
+            this.enemy.warningAlpha = 0.5 + Math.sin(Date.now() / 300) * 0.3;
             
             // Удаляем противника, если его платформа ушла за пределы экрана
             if(this.enemy.y > this.canvas.height) {
                 this.enemy.active = false;
             }
             
-            // Проверяем столкновение с противником
-            if(this.checkCollision(this.player, this.enemy)) {
+            // Проверяем столкновение с противником с небольшим буфером
+            if(this.checkCollision(this.player, {
+                x: this.enemy.x + 5,
+                y: this.enemy.y + 5,
+                width: this.enemy.width - 10,
+                height: this.enemy.height - 10
+            })) {
                 this.gameOver = true;
                 setTimeout(() => this.startNewGame(), 1000);
                 return;
@@ -428,13 +451,14 @@ class Game {
         }
         
         // Проверяем условие для начала предварительной фазы скримера
-        const nextScrimerScore = Math.ceil(this.score / 5000) * 5000;  // Следующая отметка 5000
-        const preScrimerScore = nextScrimerScore - 200;  // За 200 очков до следующей отметки
-        
+        const currentScrimerTarget = this.jumpscare.nextTriggerScore;
+        const preScrimerScore = currentScrimerTarget - 200;  // За 200 очков до следующей отметки
+
+        // Проверяем, что текущий счет достиг нужной отметки
         if(!this.jumpscare.triggered && 
            !this.jumpscare.prePhase && 
-           this.score >= preScrimerScore && 
-           nextScrimerScore > this.jumpscare.lastTriggerScore) {  // Убираем проверку конкретных значений
+           this.score >= preScrimerScore) {
+            console.log('Подготовка скримера для отметки:', currentScrimerTarget);
             this.jumpscare.prePhase = true;
             // Сохраняем текущую громкость музыки
             this.jumpscare.originalMusicVolume = this.backgroundMusic.volume;
@@ -455,11 +479,11 @@ class Game {
             this.jumpscare.preTimer++;
             
             // Активируем скример если достигли нужного времени или счета
-            if(this.jumpscare.preTimer >= this.jumpscare.preDuration || this.score >= nextScrimerScore) {
+            if(this.jumpscare.preTimer >= this.jumpscare.preDuration || this.score >= currentScrimerTarget) {
                 this.jumpscare.prePhase = false;
                 this.jumpscare.active = true;
                 this.jumpscare.triggered = true;
-                this.jumpscare.lastTriggerScore = nextScrimerScore;
+                console.log('Активация скримера на отметке:', currentScrimerTarget);
             }
         }
         
@@ -479,8 +503,14 @@ class Game {
                 // Медленное исчезновение
                 this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 30;
             } else {
+                // Завершение скримера
                 this.jumpscare.active = false;
                 this.jumpscare.triggered = false;
+                this.jumpscare.timer = 0;
+                this.jumpscare.preTimer = 0;
+                // Устанавливаем следующую отметку для скримера
+                this.jumpscare.nextTriggerScore += 5000;
+                console.log('Следующий скример будет на:', this.jumpscare.nextTriggerScore);
                 // Останавливаем звук скримера
                 this.jumpscare.sound.pause();
                 this.jumpscare.sound.currentTime = 0;
@@ -847,52 +877,93 @@ class Game {
     }
 
     spawnEnemy() {
-        // Выбираем случайную платформу из верхней половины экрана
-        const upperPlatforms = this.platforms.filter(p => p.y < this.canvas.height / 2);
+        // Выбираем платформу из верхней трети экрана
+        const upperPlatforms = this.platforms.filter(p => p.y < this.canvas.height / 3);
         if(upperPlatforms.length > 0) {
-            const platform = upperPlatforms[Math.floor(Math.random() * upperPlatforms.length)];
+            // Выбираем самую верхнюю платформу из доступных
+            const platform = upperPlatforms.reduce((highest, current) => 
+                current.y < highest.y ? current : highest
+            , upperPlatforms[0]);
+            
             this.enemy.active = true;
             this.enemy.platform = platform;
             this.enemy.x = platform.x + platform.width/2 - this.enemy.width/2;
             this.enemy.y = platform.y;
+            
+            // Добавляем визуальное предупреждение
+            this.enemy.warningAlpha = 0.8;  // Делаем предупреждение более заметным
         }
     }
 
-    // Обновляем метод воспроизведения музыки
-    playBackgroundMusic() {
-        // Пробуем воспроизвести музыку с разными вариантами пути к файлу
-        const playAttempt = this.backgroundMusic.play();
+    initializeAudio() {
+        // Инициализация фоновой музыки
+        this.backgroundMusic = new Audio('Standoff 2 .mp3');
+        this.backgroundMusic.loop = true;
+        this.backgroundMusic.volume = 0.5;
         
-        if (playAttempt !== undefined) {
-            playAttempt
-                .then(() => {
-                    this.isMusicPlaying = true;
-                    console.log('Музыка успешно запущена');
-                })
-                .catch(e => {
-                    console.error('Ошибка воспроизведения:', e);
-                    // Пробуем альтернативный путь к файлу
-                    this.backgroundMusic.src = 'standoff 2.mp3';
-                    return this.backgroundMusic.play();
-                })
-                .then(() => {
-                    this.isMusicPlaying = true;
-                    console.log('Музыка запущена с альтернативным путём');
-                })
-                .catch(e => console.error('Все попытки воспроизведения не удались:', e));
+        // Флаги для управления музыкой
+        this.isMusicPlaying = false;
+        this.hasUserInteracted = false;
+        
+        // Кнопка управления музыкой
+        this.musicButton = document.getElementById('musicToggle');
+        this.musicButton.addEventListener('click', () => {
+            this.hasUserInteracted = true;  // Устанавливаем флаг при клике на кнопку
+            this.toggleMusic();
+        });
+
+        // Обработчики для запуска музыки после взаимодействия
+        const startMusic = () => {
+            if (!this.hasUserInteracted) {
+                this.hasUserInteracted = true;
+                this.playBackgroundMusic();
+            }
+        };
+
+        // Добавляем несколько типов событий для большей надежности
+        document.addEventListener('click', startMusic, { once: true });
+        document.addEventListener('touchstart', startMusic, { once: true });
+        document.addEventListener('keydown', startMusic, { once: true });
+        
+        // Обработчик ошибок для аудио
+        this.backgroundMusic.addEventListener('error', (e) => {
+            console.error('Ошибка загрузки аудио:', e);
+            console.log('Путь к файлу:', this.backgroundMusic.src);
+        });
+    }
+
+    playBackgroundMusic() {
+        if (this.hasUserInteracted && !this.isMusicPlaying) {
+            console.log('Попытка воспроизведения музыки...');
+            const playPromise = this.backgroundMusic.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        this.isMusicPlaying = true;
+                        this.musicButton.querySelector('.music-icon').textContent = '🔊';
+                        console.log('Музыка успешно запущена');
+                    })
+                    .catch(e => {
+                        console.error('Ошибка воспроизведения:', e);
+                        // Пробуем воспроизвести через небольшую задержку
+                        setTimeout(() => {
+                            if (!this.isMusicPlaying) {
+                                this.playBackgroundMusic();
+                            }
+                        }, 1000);
+                    });
+            }
         }
     }
 
-    // Добавляем метод для переключения музыки
     toggleMusic() {
         if (this.isMusicPlaying) {
             this.backgroundMusic.pause();
             this.isMusicPlaying = false;
             this.musicButton.querySelector('.music-icon').textContent = '🔈';
-        } else {
-            this.backgroundMusic.play();
-            this.isMusicPlaying = true;
-            this.musicButton.querySelector('.music-icon').textContent = '🔊';
+        } else if (this.hasUserInteracted) {
+            this.playBackgroundMusic();
         }
     }
 }
