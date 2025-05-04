@@ -48,6 +48,32 @@
             touch-action: none;
         }
 
+        #musicToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        #musicToggle:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+
+        #musicToggle img {
+            width: 24px;
+            height: 24px;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -67,12 +93,16 @@
 </head>
 <body>
     <div id="game-container">
+        <button id="musicToggle">🔊</button>
         <canvas id="gameCanvas"></canvas>
         <div id="victory-screen" class="hidden">
             <h1>Победа!</h1>
             <button onclick="restartGame()">Играть снова</button>
         </div>
     </div>
+    <audio id="backgroundMusic" loop>
+        <source src="Standoff 2 .mp3" type="audio/mp3">
+    </audio>
     <script src="game.js"></script>
 </body>
 </html> 

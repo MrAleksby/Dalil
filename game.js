@@ -96,6 +96,12 @@ class Game {
         this.jumpscare.sound.load();
         this.jumpscare.sound.volume = 1.0;  // Максимальная громкость
         
+        this.backgroundMusic = document.getElementById('backgroundMusic');
+        this.backgroundMusic.volume = 1.0; // Устанавливаем громкость на 100%
+        this.musicButton = document.getElementById('musicToggle');
+        this.isMusicPlaying = true;
+        this.initBackgroundMusic();
+        
         this.startNewGame();
     }
     
@@ -261,6 +267,13 @@ class Game {
         // Останавливаем звук скримера если он играет
         this.jumpscare.sound.pause();
         this.jumpscare.sound.currentTime = 0;
+        
+        // Проверяем состояние музыки при старте новой игры
+        if (this.isMusicPlaying && this.backgroundMusic.paused) {
+            this.backgroundMusic.play().catch(error => {
+                console.log("Playback prevented:", error);
+            });
+        }
         
         // Запускаем новый игровой цикл
         this.gameLoop();
@@ -829,6 +842,54 @@ class Game {
             this.enemy.x = platform.x + platform.width/2 - this.enemy.width/2;
             this.enemy.y = platform.y;
         }
+    }
+
+    initBackgroundMusic() {
+        // Начинаем воспроизведение музыки
+        const playMusic = () => {
+            this.backgroundMusic.play().catch(error => {
+                console.log("Autoplay prevented:", error);
+            });
+        };
+
+        // Обработчик клика по кнопке музыки
+        this.musicButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Предотвращаем всплытие события
+            if (this.isMusicPlaying) {
+                this.backgroundMusic.pause();
+                this.musicButton.textContent = '🔈';
+            } else {
+                this.backgroundMusic.play();
+                this.musicButton.textContent = '🔊';
+            }
+            this.isMusicPlaying = !this.isMusicPlaying;
+        });
+
+        // Пытаемся воспроизвести музыку при первом клике пользователя
+        document.addEventListener('click', () => {
+            if (this.isMusicPlaying) {
+                playMusic();
+            }
+        }, { once: true });
+
+        // Убеждаемся, что музыка продолжает играть после завершения
+        this.backgroundMusic.addEventListener('ended', () => {
+            if (this.isMusicPlaying) {
+                this.backgroundMusic.currentTime = 0;
+                playMusic();
+            }
+        });
+    }
+
+    restart() {
+        // ... existing code ...
+        // Перезапускаем музыку при рестарте
+        if (this.backgroundMusic.paused) {
+            this.backgroundMusic.play().catch(error => {
+                console.log("Playback prevented:", error);
+            });
+        }
+        // ... existing code ...
     }
 }
 
