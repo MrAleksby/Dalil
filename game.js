@@ -15,19 +15,11 @@ class Game {
         // Устанавливаем константы для физики в зависимости от устройства
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        if (this.isMobile) {
-            // Ускоренная физика для мобильных устройств
-            this.INITIAL_JUMP_FORCE = -20;    // Увеличиваем силу прыжка
-            this.INITIAL_GRAVITY = 0.8;       // Увеличиваем гравитацию
-            this.INITIAL_MOVE_SPEED = 0.8;    // Увеличиваем скорость движения
-            this.INITIAL_MAX_VELOCITY = 9;    // Увеличиваем максимальную скорость
-        } else {
-            // Стандартная физика для десктопа
-            this.INITIAL_JUMP_FORCE = -15;
-            this.INITIAL_GRAVITY = 0.4;
-            this.INITIAL_MOVE_SPEED = 0.5;
-            this.INITIAL_MAX_VELOCITY = 7;
-        }
+        // Возвращаем стандартные параметры физики для всех устройств
+        this.INITIAL_JUMP_FORCE = -15;
+        this.INITIAL_GRAVITY = 0.4;
+        this.INITIAL_MOVE_SPEED = 0.5;
+        this.INITIAL_MAX_VELOCITY = 7;
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
@@ -65,8 +57,9 @@ class Game {
             width: 40,
             height: 40,
             platform: null,
-            nextSpawnScore: 1000,
-            lastSpawnScore: 0  // Добавляем отслеживание последнего появления
+            nextSpawnScore: 800,  // Начинаем с 800 очков
+            lastSpawnScore: 0,
+            warningAlpha: 0  // Для мигания
         };
         
         // Добавляем параметры для мобильного управления
@@ -87,11 +80,11 @@ class Game {
             scale: 1,
             opacity: 0,
             triggered: false,
-            sound: new Audio('data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==') // Пустой звук как заглушка
+            sound: new Audio('napryajennyiy-zvuk.mp3')  // Используем наш звуковой файл
         };
         
-        // Загружаем звук скримера
-        this.loadJumpscareSound();
+        // Предзагружаем звук
+        this.jumpscare.sound.load();
         
         this.startNewGame();
     }
@@ -170,20 +163,15 @@ class Game {
     handleOrientation(event) {
         if (event.gamma === null) return;
         
-        // Более чувствительное управление наклоном для мобильных устройств
-        const tiltThreshold = 5; // Уменьшаем порог наклона для более быстрой реакции
-        const tiltSensitivity = 0.8; // Коэффициент чувствительности
+        // Более мягкое управление наклоном для мобильных устройств
+        const tiltThreshold = 10; // Возвращаем исходный порог наклона
         
         if (event.gamma < -tiltThreshold) {
             this.keys.left = true;
             this.keys.right = false;
-            // Добавляем дополнительное ускорение при сильном наклоне
-            this.player.velocityX -= Math.abs(event.gamma) * tiltSensitivity;
         } else if (event.gamma > tiltThreshold) {
             this.keys.left = false;
             this.keys.right = true;
-            // Добавляем дополнительное ускорение при сильном наклоне
-            this.player.velocityX += Math.abs(event.gamma) * tiltSensitivity;
         } else {
             this.keys.left = false;
             this.keys.right = false;
@@ -241,8 +229,9 @@ class Game {
         
         // Сбрасываем параметры противника
         this.enemy.active = false;
-        this.enemy.nextSpawnScore = 1000;
+        this.enemy.nextSpawnScore = 800;  // Начинаем с 800 очков
         this.enemy.lastSpawnScore = 0;
+        this.enemy.warningAlpha = 0;
         
         // Сбрасываем параметры скримера
         this.jumpscare.active = false;
@@ -250,6 +239,10 @@ class Game {
         this.jumpscare.scale = 1;
         this.jumpscare.opacity = 0;
         this.jumpscare.triggered = false;
+        
+        // Останавливаем звук скримера если он играет
+        this.jumpscare.sound.pause();
+        this.jumpscare.sound.currentTime = 0;
         
         // Запускаем новый игровой цикл
         this.gameLoop();
@@ -283,33 +276,19 @@ class Game {
         // Обновляем физику персонажа с более плавным ускорением
         this.player.velocityY += this.gravity;
         
-        // Более отзывчивое управление для мобильных устройств
-        if(this.isMobile) {
-            if(this.keys.left) {
-                this.player.velocityX -= this.moveSpeed * 1.2;  // Увеличенное ускорение
-                this.player.rotation = -0.2;
-            } else if(this.keys.right) {
-                this.player.velocityX += this.moveSpeed * 1.2;  // Увеличенное ускорение
-                this.player.rotation = 0.2;
-            } else {
-                this.player.velocityX *= 0.90;  // Меньше трения для более плавного движения
-                this.player.rotation = 0;
-            }
+        // Возвращаем стандартное управление для всех устройств
+        if(this.keys.left) {
+            this.player.velocityX -= this.moveSpeed;
+            this.player.rotation = -0.2;
+        } else if(this.keys.right) {
+            this.player.velocityX += this.moveSpeed;
+            this.player.rotation = 0.2;
         } else {
-            // Стандартное управление для десктопа
-            if(this.keys.left) {
-                this.player.velocityX -= this.moveSpeed;
-                this.player.rotation = -0.2;
-            } else if(this.keys.right) {
-                this.player.velocityX += this.moveSpeed;
-                this.player.rotation = 0.2;
-            } else {
-                this.player.velocityX *= 0.95;
-                this.player.rotation = 0;
-            }
+            this.player.velocityX *= 0.95;  // Стандартное трение
+            this.player.rotation = 0;
         }
         
-        // Ограничиваем максимальную скорость с учетом устройства
+        // Ограничиваем максимальную скорость
         this.player.velocityX = Math.max(Math.min(this.player.velocityX, this.maxVelocityX), -this.maxVelocityX);
         
         // Обновляем позицию с оптимизированной физикой
@@ -371,16 +350,21 @@ class Game {
         }
         
         // Проверяем необходимость создания противника
-        // Проверяем, пересекли ли мы новую тысячу очков
-        const currentThousand = Math.floor(this.score / 1000) * 1000;
-        if(currentThousand > this.enemy.lastSpawnScore) {
-            this.enemy.lastSpawnScore = currentThousand;
+        // Появляемся за 200 очков до следующей тысячи
+        const nextThousand = Math.ceil(this.score / 1000) * 1000;
+        const spawnThreshold = nextThousand - 200;
+        
+        if(!this.enemy.active && this.score >= spawnThreshold && this.score < nextThousand && spawnThreshold > this.enemy.lastSpawnScore) {
+            this.enemy.lastSpawnScore = spawnThreshold;
             this.spawnEnemy();
         }
 
-        // Если противник активен, обновляем его позицию вместе с платформой
+        // Если противник активен, обновляем его позицию и эффект мигания
         if(this.enemy.active) {
             this.enemy.y = this.enemy.platform.y;
+            
+            // Мигающий эффект предупреждения
+            this.enemy.warningAlpha = 0.5 + Math.sin(Date.now() / 200) * 0.2;
             
             // Удаляем противника, если его платформа ушла за пределы экрана
             if(this.enemy.y > this.canvas.height) {
@@ -405,6 +389,7 @@ class Game {
         if(!this.jumpscare.triggered && this.score >= 5000) {
             this.jumpscare.active = true;
             this.jumpscare.triggered = true;
+            // Воспроизводим звук
             this.jumpscare.sound.play().catch(e => console.log('Audio play failed:', e));
         }
         
@@ -423,9 +408,15 @@ class Game {
             } else if(this.jumpscare.timer < this.jumpscare.duration) {
                 // Исчезновение
                 this.jumpscare.opacity = (this.jumpscare.duration - this.jumpscare.timer) / 10;
+                // Уменьшаем громкость звука
+                this.jumpscare.sound.volume = (this.jumpscare.duration - this.jumpscare.timer) / 10;
             } else {
                 // Завершение скримера
                 this.jumpscare.active = false;
+                // Останавливаем звук
+                this.jumpscare.sound.pause();
+                this.jumpscare.sound.currentTime = 0;
+                this.jumpscare.sound.volume = 1;
             }
         }
     }
@@ -503,6 +494,10 @@ class Game {
 
     drawEvilKenito(x, y) {
         this.ctx.save();
+        
+        // Применяем эффект мигания
+        this.ctx.globalAlpha = this.enemy.warningAlpha;
+        
         this.ctx.translate(x + this.enemy.width/2, y + this.enemy.height/2);
 
         // Размеры частей тела
@@ -663,8 +658,20 @@ class Game {
         // Рисуем Кенито
         this.drawKenito(this.player.x, this.player.y, this.player.rotation);
         
-        // Рисуем противника, если он активен
+        // Рисуем противника с эффектом предупреждения
         if(this.enemy.active) {
+            // Рисуем круг предупреждения
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(this.enemy.x + this.enemy.width/2, 
+                        this.enemy.y + this.enemy.height/2, 
+                        this.enemy.width * 0.8,
+                        0, Math.PI * 2);
+            this.ctx.fillStyle = `rgba(255, 0, 0, ${this.enemy.warningAlpha * 0.3})`;
+            this.ctx.fill();
+            this.ctx.restore();
+            
+            // Рисуем злого Кенито
             this.drawEvilKenito(this.enemy.x, this.enemy.y);
         }
         
@@ -756,27 +763,6 @@ class Game {
             this.enemy.x = platform.x + platform.width/2 - this.enemy.width/2;
             this.enemy.y = platform.y;
         }
-    }
-
-    loadJumpscareSound() {
-        // Создаем короткий резкий звук
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.type = 'square';
-        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-        oscillator.frequency.linearRampToValueAtTime(1000, audioContext.currentTime + 0.1);
-        
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.05);
-        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.3);
     }
 }
 
