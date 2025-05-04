@@ -159,31 +159,43 @@ class Game {
     }
     
     setupControls() {
-        // Клавиатура
+        // Клавиатура для десктопа
         document.addEventListener('keydown', this.handleKeyDown);
         document.addEventListener('keyup', this.handleKeyUp);
         
         if (this.isMobile) {
-            // Акселерометр
-            if (window.DeviceOrientationEvent) {
-                window.addEventListener('deviceorientation', (e) => {
-                    this.handleOrientation(e);
-                });
-            }
-            
-            // Кнопки управления
-            const leftButton = document.getElementById('leftButton');
-            const rightButton = document.getElementById('rightButton');
-            
-            // Обработчики для сенсорного управления
-            leftButton.addEventListener('touchstart', () => this.keys.left = true);
-            leftButton.addEventListener('touchend', () => this.keys.left = false);
-            rightButton.addEventListener('touchstart', () => this.keys.right = true);
-            rightButton.addEventListener('touchend', () => this.keys.right = false);
-            
-            // Предотвращаем стандартные действия браузера
-            leftButton.addEventListener('touchstart', (e) => e.preventDefault());
-            rightButton.addEventListener('touchstart', (e) => e.preventDefault());
+            // Добавляем обработчики для тач-управления
+            this.canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Предотвращаем стандартное поведение
+                const touch = e.touches[0];
+                const rect = this.canvas.getBoundingClientRect();
+                const touchX = touch.clientX - rect.left;
+                
+                // Если тап в левой половине экрана
+                if (touchX < rect.width / 2) {
+                    this.keys.left = true;
+                    this.keys.right = false;
+                } 
+                // Если тап в правой половине экрана
+                else {
+                    this.keys.right = true;
+                    this.keys.left = false;
+                }
+            });
+
+            this.canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                // Останавливаем движение при отпускании
+                this.keys.left = false;
+                this.keys.right = false;
+            });
+
+            this.canvas.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                // Останавливаем движение при отмене касания
+                this.keys.left = false;
+                this.keys.right = false;
+            });
         }
     }
     
@@ -422,8 +434,7 @@ class Game {
         if(!this.jumpscare.triggered && 
            !this.jumpscare.prePhase && 
            this.score >= preScrimerScore && 
-           nextScrimerScore > this.jumpscare.lastTriggerScore &&
-           (nextScrimerScore === 5000 || nextScrimerScore === 10000 || nextScrimerScore === 15000)) {  // Добавляем все нужные значения
+           nextScrimerScore > this.jumpscare.lastTriggerScore) {  // Убираем проверку конкретных значений
             this.jumpscare.prePhase = true;
             // Сохраняем текущую громкость музыки
             this.jumpscare.originalMusicVolume = this.backgroundMusic.volume;
