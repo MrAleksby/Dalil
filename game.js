@@ -104,27 +104,18 @@ class Game {
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
         
-        // Базовые пропорции игры
-        const gameRatio = 2/3; // Высота = 1.5 * ширина
+        // Устанавливаем размеры канваса равными размерам окна
+        this.canvas.width = windowWidth;
+        this.canvas.height = windowHeight;
         
-        let canvasWidth, canvasHeight;
+        // Вычисляем масштаб относительно базового размера
+        const baseWidth = 400;
+        const baseHeight = 600;
         
-        if (windowHeight / windowWidth > gameRatio) {
-            // Если окно слишком высокое, ориентируемся на ширину
-            canvasWidth = Math.min(windowWidth, 400);
-            canvasHeight = canvasWidth * 1.5;
-        } else {
-            // Если окно слишком широкое, ориентируемся на высоту
-            canvasHeight = Math.min(windowHeight, 600);
-            canvasWidth = canvasHeight / 1.5;
-        }
-        
-        // Устанавливаем размеры канваса
-        this.canvas.width = canvasWidth;
-        this.canvas.height = canvasHeight;
-        
-        // Масштабируем все размеры относительно базовой ширины
-        this.scale = canvasWidth / 400;
+        // Выбираем масштаб, который заполнит весь экран, сохраняя пропорции
+        const scaleX = windowWidth / baseWidth;
+        const scaleY = windowHeight / baseHeight;
+        this.scale = Math.max(scaleX, scaleY);
         
         // Обновляем размеры игровых объектов
         if (this.player) {
