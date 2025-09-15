@@ -1,4 +1,21 @@
 class Game {
+    // Константы игры
+    static CONSTANTS = {
+        INITIAL_JUMP_FORCE: -15,
+        INITIAL_GRAVITY: 0.4,
+        INITIAL_MOVE_SPEED: 0.5,
+        INITIAL_MAX_VELOCITY: 7,
+        ENEMY_SPAWN_SCORE: 800,
+        ENEMY_SPAWN_THRESHOLD: 400,
+        JUMPSCARE_TRIGGER_SCORE: 5000,
+        JUMPSCARE_PRE_DURATION: 180,
+        JUMPSCARE_DURATION: 120,
+        PLATFORM_COUNT: 15,
+        PLATFORM_WIDTH: 60,
+        PLATFORM_HEIGHT: 15,
+        PLAYER_SIZE: 40
+    };
+
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
@@ -15,11 +32,11 @@ class Game {
         // Устанавливаем константы для физики в зависимости от устройства
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Возвращаем стандартные параметры физики для всех устройств
-        this.INITIAL_JUMP_FORCE = -15;
-        this.INITIAL_GRAVITY = 0.4;
-        this.INITIAL_MOVE_SPEED = 0.5;
-        this.INITIAL_MAX_VELOCITY = 7;
+        // Используем константы для физики
+        this.INITIAL_JUMP_FORCE = Game.CONSTANTS.INITIAL_JUMP_FORCE;
+        this.INITIAL_GRAVITY = Game.CONSTANTS.INITIAL_GRAVITY;
+        this.INITIAL_MOVE_SPEED = Game.CONSTANTS.INITIAL_MOVE_SPEED;
+        this.INITIAL_MAX_VELOCITY = Game.CONSTANTS.INITIAL_MAX_VELOCITY;
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
@@ -33,9 +50,7 @@ class Game {
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.gameLoop = this.gameLoop.bind(this);
         
-        // Добавляем обработчики событий
-        document.addEventListener('keydown', this.handleKeyDown);
-        document.addEventListener('keyup', this.handleKeyUp);
+        // Обработчики событий будут добавлены в setupControls()
         
         // Создаем градиент для фона
         this.backgroundGradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
@@ -57,17 +72,13 @@ class Game {
             width: 40,
             height: 40,
             platform: null,
-            nextSpawnScore: 800,  // Начинаем с 800 очков
+            nextSpawnScore: Game.CONSTANTS.ENEMY_SPAWN_SCORE,
             lastSpawnScore: 0,
             warningAlpha: 0  // Для мигания
         };
         
-        // Добавляем параметры для мобильного управления
-        this.accelerometer = {
-            x: 0,
-            y: 0,
-            z: 0
-        };
+        // Параметры для мобильного управления (пока не используются)
+        // this.accelerometer = { x: 0, y: 0, z: 0 };
         
         // Настраиваем управление
         this.setupControls();
@@ -83,7 +94,7 @@ class Game {
             scale: 1,
             opacity: 0,
             triggered: false,
-            nextTriggerScore: 5000,  // Изменяем: теперь храним следующую отметку для скримера
+            nextTriggerScore: Game.CONSTANTS.JUMPSCARE_TRIGGER_SCORE,
             sound: new Audio('napryajennyiy-zvuk.mp3'),
             originalMusicVolume: 0.5  // Сохраняем оригинальную громкость музыки
         };
@@ -221,9 +232,9 @@ class Game {
         this.player = {
             x: this.canvas.width / 2,
             y: this.canvas.height - 100,
-            width: 40,
-            height: 40,
-            velocityY: -15,
+            width: Game.CONSTANTS.PLAYER_SIZE,
+            height: Game.CONSTANTS.PLAYER_SIZE,
+            velocityY: Game.CONSTANTS.INITIAL_JUMP_FORCE,
             velocityX: 0,
             rotation: 0
         };
@@ -257,19 +268,7 @@ class Game {
         };
         
         // Сбрасываем параметры скримера
-        this.jumpscare = {
-            active: false,
-            prePhase: false,
-            timer: 0,
-            duration: 120,
-            preTimer: 0,
-            preDuration: 180,
-            scale: 1,
-            opacity: 0,
-            triggered: false,
-            nextTriggerScore: 5000,
-            sound: this.jumpscare ? this.jumpscare.sound : new Audio('napryajennyiy-zvuk.mp3')
-        };
+        this.resetJumpscare();
         
         // Восстанавливаем музыку если она была включена
         if (this.hasUserInteracted) {
@@ -287,7 +286,7 @@ class Game {
         
         // Сбрасываем параметры противника
         this.enemy.active = false;
-        this.enemy.nextSpawnScore = 800;  // Начинаем с 800 очков
+        this.enemy.nextSpawnScore = Game.CONSTANTS.ENEMY_SPAWN_SCORE;
         this.enemy.lastSpawnScore = 0;
         this.enemy.warningAlpha = 0;
         
@@ -297,12 +296,12 @@ class Game {
     
     createPlatforms() {
         this.platforms = [];
-        for(let i = 0; i < 15; i++) {
+        for(let i = 0; i < Game.CONSTANTS.PLATFORM_COUNT; i++) {
             this.platforms.push({
-                x: Math.random() * (this.canvas.width - 60),
+                x: Math.random() * (this.canvas.width - Game.CONSTANTS.PLATFORM_WIDTH),
                 y: this.canvas.height - (i * 60),
-                width: 60,
-                height: 15
+                width: Game.CONSTANTS.PLATFORM_WIDTH,
+                height: Game.CONSTANTS.PLATFORM_HEIGHT
             });
         }
     }
@@ -399,20 +398,19 @@ class Game {
         
         // Генерация новых платформ
         this.platforms = this.platforms.filter(platform => platform.y < this.canvas.height);
-        while(this.platforms.length < 15) {
+        while(this.platforms.length < Game.CONSTANTS.PLATFORM_COUNT) {
             let lastPlatform = this.platforms[this.platforms.length - 1];
             this.platforms.push({
-                x: Math.random() * (this.canvas.width - 60),
+                x: Math.random() * (this.canvas.width - Game.CONSTANTS.PLATFORM_WIDTH),
                 y: lastPlatform.y - (Math.random() * 40 + 40),  // Более равномерное распределение
-                width: 60,
-                height: 15
+                width: Game.CONSTANTS.PLATFORM_WIDTH,
+                height: Game.CONSTANTS.PLATFORM_HEIGHT
             });
         }
         
         // Проверяем необходимость создания противника
-        // Появляемся за 400 очков до следующей тысячи (увеличили с 200 до 400)
         const nextThousand = Math.ceil(this.score / 1000) * 1000;
-        const spawnThreshold = nextThousand - 400;
+        const spawnThreshold = nextThousand - Game.CONSTANTS.ENEMY_SPAWN_THRESHOLD;
         
         if(!this.enemy.active && this.score >= spawnThreshold && this.score < nextThousand && spawnThreshold > this.enemy.lastSpawnScore) {
             this.enemy.lastSpawnScore = spawnThreshold;
@@ -965,6 +963,25 @@ class Game {
         } else if (this.hasUserInteracted) {
             this.playBackgroundMusic();
         }
+    }
+
+    /**
+     * Сбрасывает параметры скримера
+     */
+    resetJumpscare() {
+        this.jumpscare = {
+            active: false,
+            prePhase: false,
+            timer: 0,
+            duration: Game.CONSTANTS.JUMPSCARE_DURATION,
+            preTimer: 0,
+            preDuration: Game.CONSTANTS.JUMPSCARE_PRE_DURATION,
+            scale: 1,
+            opacity: 0,
+            triggered: false,
+            nextTriggerScore: Game.CONSTANTS.JUMPSCARE_TRIGGER_SCORE,
+            sound: this.jumpscare ? this.jumpscare.sound : new Audio('napryajennyiy-zvuk.mp3')
+        };
     }
 }
 
