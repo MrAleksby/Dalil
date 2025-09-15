@@ -3,8 +3,8 @@ class Game {
     static CONSTANTS = {
         INITIAL_JUMP_FORCE: -15,
         INITIAL_GRAVITY: 0.4,
-        INITIAL_MOVE_SPEED: 0.5,
-        INITIAL_MAX_VELOCITY: 7,
+        INITIAL_MOVE_SPEED: 0.8,
+        INITIAL_MAX_VELOCITY: 7.5,
         ENEMY_SPAWN_SCORE: 800,
         ENEMY_SPAWN_THRESHOLD: 400,
         JUMPSCARE_TRIGGER_SCORE: 5000,
@@ -343,7 +343,7 @@ class Game {
             this.player.velocityX += this.moveSpeed;
             this.player.rotation = 0.2;
         } else {
-            this.player.velocityX *= 0.95;  // Стандартное трение
+            this.player.velocityX *= 0.92;  // Улучшенное трение для более плавного движения
             this.player.rotation = 0;
         }
         
