@@ -437,7 +437,7 @@ class Game {
                 height: this.enemy.height - 10
             })) {
                 this.gameOver = true;
-                setTimeout(() => this.startNewGame(), 1000);
+                setTimeout(() => this.endGame(), 1000);
                 return;
             }
         }
@@ -445,7 +445,7 @@ class Game {
         // Проверка на проигрыш
         if(this.player.y > this.canvas.height) {
             this.gameOver = true;
-            setTimeout(() => this.startNewGame(), 1000);
+            setTimeout(() => this.endGame(), 1000);
         }
         
         // Проверяем условие для начала предварительной фазы скримера
@@ -983,6 +983,683 @@ class Game {
             sound: this.jumpscare ? this.jumpscare.sound : new Audio('napryajennyiy-zvuk.mp3')
         };
     }
+
+    /**
+     * Завершение игры и сохранение результата
+     */
+    async endGame() {
+        const finalScore = Math.floor(this.score);
+        console.log('Игра окончена! Финальный счет:', finalScore);
+        
+        // Сохраняем результат если пользователь авторизован
+        const currentUser = window.simpleGetCurrentUser();
+        if (currentUser) {
+            try {
+                await this.saveGameResult(finalScore);
+                console.log('Результат сохранен');
+            } catch (error) {
+                console.error('Ошибка сохранения результата:', error);
+            }
+        } else {
+            console.log('Пользователь не авторизован, результат не сохраняется');
+        }
+        
+        // Показываем экран окончания игры
+        if (window.navigation) {
+            console.log('Используем navigation.showGameOver');
+            window.navigation.showGameOver(finalScore);
+        } else {
+            console.log('Используем альтернативный способ показа экрана');
+            // Альтернативный способ показа экрана окончания игры
+            this.showGameOverScreen(finalScore);
+        }
+    }
+
+    /**
+     * Сохранение результата игры
+     */
+    async saveGameResult(score) {
+        try {
+            // Получаем текущего пользователя из простой системы
+            const currentUser = window.simpleGetCurrentUser();
+            if (!currentUser) {
+                console.log('Пользователь не авторизован, результат не сохраняется');
+                return;
+            }
+            
+            const username = currentUser.username;
+            console.log('Сохраняем результат для пользователя:', username, 'счет:', score);
+            
+            // Загружаем существующий рейтинг
+            let leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
+            
+            // Проверяем, есть ли уже запись этого пользователя
+            const existingIndex = leaderboard.findIndex(entry => entry.username === username);
+            
+            if (existingIndex !== -1) {
+                // Обновляем существующую запись только если новый счет лучше
+                const existingScore = leaderboard[existingIndex].score;
+                if (score > existingScore) {
+                    leaderboard[existingIndex] = {
+                        username: username,
+                score: score,
+                        date: new Date().toISOString()
+                    };
+                    console.log('Обновлена лучшая запись пользователя:', username, 'новый счет:', score);
+            } else {
+                    console.log('Счет не улучшен, запись не обновляется');
+                    return;
+                }
+            } else {
+                // Добавляем новую запись
+                leaderboard.push({
+                    username: username,
+                    score: score,
+                    date: new Date().toISOString()
+                });
+                console.log('Добавлена новая запись в рейтинг:', username, 'счет:', score);
+            }
+            
+            // Сохраняем обновленный рейтинг
+            localStorage.setItem('simple_leaderboard', JSON.stringify(leaderboard));
+            console.log('Рейтинг сохранен в localStorage');
+            
+        } catch (error) {
+            console.error('Ошибка сохранения результата:', error);
+        }
+    }
+
+    /**
+     * Получение имени текущего пользователя
+     */
+    async getCurrentUsername() {
+        if (!window.auth || !window.auth.currentUser) return 'Гость';
+        
+        try {
+            const userDoc = await window.db.collection('users').doc(window.auth.currentUser.uid).get();
+            if (userDoc.exists) {
+                return userDoc.data().username;
+            }
+        } catch (error) {
+            console.error('Ошибка получения имени пользователя:', error);
+        }
+        return 'Гость';
+    }
+
+    /**
+     * Обновление статистики игрока
+     */
+    async updatePlayerStats(score) {
+        if (!window.auth || !window.auth.currentUser) return;
+        
+        try {
+            const userId = window.auth.currentUser.uid;
+            const userRef = window.db.collection('users').doc(userId);
+            const userDoc = await userRef.get();
+            
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                const stats = userData.stats || {
+                    totalGames: 0,
+                    bestScore: 0,
+                    totalScore: 0,
+                    averageScore: 0,
+                    currentRank: 0,
+                    gamesPlayedToday: 0,
+                    lastGameDate: null
+                };
+                
+                // Обновляем статистику
+                stats.totalGames += 1;
+                stats.totalScore += score;
+                stats.averageScore = Math.round(stats.totalScore / stats.totalGames);
+                
+                if (score > stats.bestScore) {
+                    stats.bestScore = score;
+                }
+                
+                // Проверяем, играл ли сегодня
+                const today = new Date().toDateString();
+                const lastGameDate = stats.lastGameDate ? 
+                    new Date(stats.lastGameDate).toDateString() : null;
+                
+                if (lastGameDate !== today) {
+                    stats.gamesPlayedToday = 1;
+                } else {
+                    stats.gamesPlayedToday += 1;
+                }
+                
+                stats.lastGameDate = new Date();
+                
+                // Сохраняем обновленную статистику
+                await userRef.update({ stats: stats });
+                
+                // Обновляем место в рейтинге
+                await this.updatePlayerRank(userId);
+            }
+        } catch (error) {
+            console.error('Ошибка обновления статистики:', error);
+        }
+    }
+
+    /**
+     * Обновление места в рейтинге
+     */
+    async updatePlayerRank(userId) {
+        try {
+            const userRef = window.db.collection('users').doc(userId);
+            const userDoc = await userRef.get();
+            
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                const bestScore = userData.stats.bestScore;
+                
+                // Получаем рейтинг и находим место игрока
+                const leaderboardSnapshot = await window.db.collection('leaderboard')
+                    .orderBy('score', 'desc')
+                    .get();
+                
+                let rank = 1;
+                for (const doc of leaderboardSnapshot.docs) {
+                    if (doc.data().userId === userId) {
+                        break;
+                    }
+                    rank++;
+                }
+                
+                // Обновляем место в статистике
+                await userRef.update({
+                    'stats.currentRank': rank
+                });
+            }
+        } catch (error) {
+            console.error('Ошибка обновления места в рейтинге:', error);
+        }
+    }
+
+    /**
+     * Получение кода страны
+     */
+    getCountryCode() {
+        // Простая реализация - можно улучшить
+        return 'RU';
+    }
+
+    /**
+     * Получение типа устройства
+     */
+    getDeviceType() {
+        return this.isMobile ? 'mobile' : 'desktop';
+    }
+
+    /**
+     * Показ экрана окончания игры
+     */
+    showGameOverScreen(finalScore) {
+        console.log('Показываем экран окончания игры со счетом:', finalScore);
+        
+        // Скрываем игровой экран
+        const gameScreen = document.getElementById('game-screen');
+        if (gameScreen) {
+            gameScreen.classList.add('hidden');
+            console.log('Игровой экран скрыт');
+        }
+
+        // Показываем экран окончания игры
+        const gameOverScreen = document.getElementById('game-over-screen');
+        if (gameOverScreen) {
+            gameOverScreen.classList.remove('hidden');
+            console.log('Экран окончания игры показан');
+            
+            // Обновляем финальный счет
+            const finalScoreElement = document.getElementById('finalScore');
+            if (finalScoreElement) {
+                finalScoreElement.textContent = finalScore.toLocaleString();
+                console.log('Финальный счет обновлен:', finalScore);
+            }
+
+            // Проверяем, новый ли это рекорд
+            const currentUser = window.simpleGetCurrentUser();
+            if (currentUser) {
+                this.checkNewRecord(finalScore);
+            }
+        } else {
+            console.error('Элемент game-over-screen не найден!');
+        }
+    }
+
+    /**
+     * Проверка нового рекорда
+     */
+    async checkNewRecord(score) {
+        try {
+            const currentUser = window.simpleGetCurrentUser();
+            if (!currentUser) return;
+            
+            // Загружаем рейтинг и проверяем лучший результат пользователя
+            const leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
+            const userEntry = leaderboard.find(entry => entry.username === currentUser.username);
+            
+            if (userEntry) {
+                // Проверяем, является ли текущий счет новым рекордом
+                if (score > userEntry.score) {
+                    const newRecordElement = document.getElementById('newRecord');
+                    if (newRecordElement) {
+                        newRecordElement.classList.remove('hidden');
+                        console.log('Новый рекорд!', score);
+                    }
+                }
+            } else {
+                // Если это первый результат пользователя, это автоматически рекорд
+                const newRecordElement = document.getElementById('newRecord');
+                if (newRecordElement) {
+                    newRecordElement.classList.remove('hidden');
+                    console.log('Первый результат - новый рекорд!', score);
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка проверки рекорда:', error);
+        }
+    }
 }
 
+// Система навигации между экранами
+class NavigationManager {
+    constructor() {
+        this.currentScreen = 'main-menu';
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Кнопки главного меню
+        document.getElementById('startGameBtn').addEventListener('click', () => this.showGame());
+        document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
+        document.getElementById('profileBtn').addEventListener('click', () => this.showProfile());
+        document.getElementById('loginBtn').addEventListener('click', () => this.showLogin());
+        document.getElementById('registerBtn').addEventListener('click', () => this.showRegister());
+        document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+
+        // Формы авторизации
+        document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
+        document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+
+        // Валидация в реальном времени
+        document.getElementById('registerUsername').addEventListener('input', (e) => this.validateUsername(e.target));
+        document.getElementById('registerPassword').addEventListener('input', (e) => this.validatePassword(e.target));
+        document.getElementById('confirmPassword').addEventListener('input', (e) => this.validateConfirmPassword(e.target));
+    }
+
+    hideAllScreens() {
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(screen => screen.classList.add('hidden'));
+    }
+
+    showScreen(screenId) {
+        this.hideAllScreens();
+        document.getElementById(screenId).classList.remove('hidden');
+        this.currentScreen = screenId;
+    }
+
+    showMenu() {
+        this.showScreen('main-menu');
+    }
+
+    showLogin() {
+        this.showScreen('login-screen');
+    }
+
+    showRegister() {
+        this.showScreen('register-screen');
+    }
+
+    showProfile() {
+        // Проверяем, авторизован ли пользователь в простой системе
+        const currentUser = window.simpleGetCurrentUser();
+        if (!currentUser) {
+            this.showLogin();
+            return;
+        }
+        this.showScreen('profile-screen');
+        this.loadPlayerProfile();
+    }
+
+    showLeaderboard() {
+        this.showScreen('leaderboard-screen');
+        this.loadLeaderboard();
+    }
+
+    showGame() {
+        this.showScreen('game-screen');
+        if (window.game) {
+            window.game.startNewGame();
+        }
+    }
+
+    showGameOver(score) {
+        console.log('NavigationManager.showGameOver вызван со счетом:', score);
+        this.showScreen('game-over-screen');
+        
+        const finalScoreElement = document.getElementById('finalScore');
+        if (finalScoreElement) {
+            finalScoreElement.textContent = score.toLocaleString();
+            console.log('Финальный счет обновлен в NavigationManager:', score);
+        } else {
+            console.error('Элемент finalScore не найден!');
+        }
+        
+        // Проверяем, новый ли это рекорд
+        const currentUser = window.simpleGetCurrentUser();
+        if (currentUser) {
+            this.checkNewRecord(score);
+        }
+    }
+
+    // Валидация имени пользователя
+    validateUsername(input) {
+        const username = input.value;
+        const errorElement = document.getElementById('registerUsernameError');
+        const regex = /^[a-zA-Z][a-zA-Z0-9_-]{2,19}$/;
+        
+        if (username.length === 0) {
+            errorElement.textContent = '';
+            input.classList.remove('invalid');
+            return false;
+        }
+        
+        if (!regex.test(username)) {
+            errorElement.textContent = 'Имя может содержать только латинские буквы, цифры, _ и -. Длина 3-20 символов.';
+            input.classList.add('invalid');
+            return false;
+        } else {
+            errorElement.textContent = '✓ Имя корректно';
+            errorElement.classList.add('success');
+            input.classList.remove('invalid');
+            return true;
+        }
+    }
+
+    // Валидация пароля
+    validatePassword(input) {
+        const password = input.value;
+        const errorElement = document.getElementById('registerPasswordError');
+        
+        if (password.length === 0) {
+            errorElement.textContent = '';
+            input.classList.remove('invalid');
+            return false;
+        }
+        
+        if (password.length < 6) {
+            errorElement.textContent = 'Пароль должен содержать минимум 6 символов.';
+            input.classList.add('invalid');
+            return false;
+        } else {
+            errorElement.textContent = '✓ Пароль подходит';
+            errorElement.classList.add('success');
+            input.classList.remove('invalid');
+            return true;
+        }
+    }
+
+    // Валидация подтверждения пароля
+    validateConfirmPassword(input) {
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = input.value;
+        const errorElement = document.getElementById('confirmPasswordError');
+        
+        if (confirmPassword.length === 0) {
+            errorElement.textContent = '';
+            input.classList.remove('invalid');
+            return false;
+        }
+        
+        if (password !== confirmPassword) {
+            errorElement.textContent = 'Пароли не совпадают.';
+            input.classList.add('invalid');
+            return false;
+        } else {
+            errorElement.textContent = '✓ Пароли совпадают';
+            errorElement.classList.add('success');
+            input.classList.remove('invalid');
+            return true;
+        }
+    }
+
+    // Обработка входа
+    async handleLogin(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        try {
+            await this.loginUser(username, password);
+            this.showMenu();
+        } catch (error) {
+            this.showError('Ошибка входа: ' + error.message);
+        }
+    }
+
+    // Обработка регистрации
+    async handleRegister(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        // Валидация
+        if (!this.validateUsername(document.getElementById('registerUsername'))) {
+            this.showError('Проверьте имя пользователя');
+            return;
+        }
+        
+        if (!this.validatePassword(document.getElementById('registerPassword'))) {
+            this.showError('Проверьте пароль');
+            return;
+        }
+        
+        if (!this.validateConfirmPassword(document.getElementById('confirmPassword'))) {
+            this.showError('Пароли не совпадают');
+            return;
+        }
+        
+        try {
+            await this.registerUser(username, password);
+            this.showMenu();
+        } catch (error) {
+            this.showError('Ошибка регистрации: ' + error.message);
+        }
+    }
+
+    // Регистрация пользователя
+    async registerUser(username, password) {
+        try {
+            console.log('Попытка регистрации пользователя:', username);
+            
+            // Проверяем, что пользователь не существует
+            const existingUser = localStorage.getItem('simple_user_' + username);
+            if (existingUser) {
+                throw new Error('Пользователь с таким именем уже существует');
+            }
+            
+            // Создаем пользователя через простую систему
+            const result = window.simpleCreateUser(username, password);
+            console.log('Пользователь зарегистрирован:', result);
+            
+            // Обновляем UI после успешной регистрации
+            if (typeof updateUIForLoggedInUser === 'function') {
+                updateUIForLoggedInUser({ username: username });
+                console.log('UI обновлен для нового пользователя:', username);
+            } else {
+                console.log('Функция updateUIForLoggedInUser не найдена');
+            }
+            
+            return { username: username };
+        } catch (error) {
+            console.error('Ошибка регистрации:', error);
+            throw error;
+        }
+    }
+
+    // Вход пользователя
+    async loginUser(username, password) {
+        try {
+            console.log('Попытка входа пользователя:', username);
+            
+            // Используем простую систему входа
+            const result = window.simpleLogin(username, password);
+            console.log('Вход успешен:', result);
+            
+            // Обновляем UI после успешного входа
+            if (typeof updateUIForLoggedInUser === 'function') {
+                updateUIForLoggedInUser({ username: username });
+                console.log('UI обновлен для пользователя:', username);
+            } else {
+                console.log('Функция updateUIForLoggedInUser не найдена');
+            }
+            
+            return { username: username };
+        } catch (error) {
+            console.error('Ошибка входа:', error);
+            throw error;
+        }
+    }
+
+    // Выход пользователя
+    async logout() {
+        try {
+            // Используем простую систему выхода
+            window.simpleLogout();
+            this.showMenu();
+        } catch (error) {
+            this.showError('Ошибка при выходе из системы');
+        }
+    }
+
+    // Загрузка профиля игрока
+    async loadPlayerProfile() {
+        const currentUser = window.simpleGetCurrentUser();
+        if (!currentUser) return;
+        
+        try {
+            // Получаем данные пользователя из простой системы
+            const userData = JSON.parse(localStorage.getItem('simple_user_' + currentUser.username) || '{}');
+            
+            // Получаем рейтинг для статистики
+            const leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
+            const userEntry = leaderboard.find(entry => entry.username === currentUser.username);
+            
+            // Обновляем информацию о игроке
+            const playerNameElement = document.getElementById('playerName');
+            if (playerNameElement) {
+                playerNameElement.textContent = currentUser.username;
+            }
+            
+            const playerJoinDateElement = document.getElementById('playerJoinDate');
+            if (playerJoinDateElement && userData.createdAt) {
+                playerJoinDateElement.textContent = `Игрок с ${new Date(userData.createdAt).toLocaleDateString()}`;
+            }
+            
+            // Обновляем статистику
+            const bestScore = userEntry ? userEntry.score : 0;
+            const rank = userEntry ? leaderboard.sort((a, b) => b.score - a.score).findIndex(entry => entry.username === currentUser.username) + 1 : '-';
+            
+            const totalGamesElement = document.querySelector('[data-stat="totalGames"]');
+            if (totalGamesElement) totalGamesElement.textContent = userEntry ? '1' : '0';
+            
+            const bestScoreElement = document.querySelector('[data-stat="bestScore"]');
+            if (bestScoreElement) bestScoreElement.textContent = bestScore.toLocaleString();
+            
+            const currentRankElement = document.querySelector('[data-stat="currentRank"]');
+            if (currentRankElement) currentRankElement.textContent = rank !== '-' ? `#${rank}` : '-';
+            
+            
+        } catch (error) {
+            console.error('Ошибка загрузки профиля:', error);
+        }
+    }
+
+    // Загрузка рейтинга
+    async loadLeaderboard() {
+        const leaderboardList = document.getElementById('leaderboardList');
+        leaderboardList.innerHTML = '<div class="loading">Загрузка рейтинга...</div>';
+        
+        try {
+            // Загружаем рейтинг из простой системы
+            const leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
+            
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<div class="loading">Рейтинг пуст</div>';
+                return;
+            }
+            
+            // Сортируем по счету (по убыванию)
+            leaderboard.sort((a, b) => b.score - a.score);
+            
+            let html = '';
+            let rank = 1;
+            const currentUser = window.simpleGetCurrentUser();
+            
+            leaderboard.forEach(entry => {
+                const isCurrentPlayer = currentUser && entry.username === currentUser.username;
+                
+                html += `
+                    <div class="leaderboard-item ${isCurrentPlayer ? 'current-player' : ''}">
+                        <div class="leaderboard-rank">#${rank}</div>
+                        <div class="leaderboard-name">${entry.username}</div>
+                        <div class="leaderboard-score">${entry.score.toLocaleString()}</div>
+                    </div>
+                `;
+                rank++;
+            });
+            
+            leaderboardList.innerHTML = html;
+            console.log('Рейтинг загружен:', leaderboard.length, 'записей');
+        } catch (error) {
+            console.error('Ошибка загрузки рейтинга:', error);
+            leaderboardList.innerHTML = '<div class="loading">Ошибка загрузки рейтинга</div>';
+        }
+    }
+
+    // Проверка нового рекорда
+    async checkNewRecord(score) {
+        if (!window.auth || !window.auth.currentUser) return;
+        
+        try {
+            const userDoc = await window.db.collection('users').doc(window.auth.currentUser.uid).get();
+            if (userDoc.exists) {
+                const stats = userDoc.data().stats || {};
+                if (score > (stats.bestScore || 0)) {
+                    document.getElementById('newRecord').classList.remove('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка проверки рекорда:', error);
+        }
+    }
+
+    // Показ ошибок
+    showError(message) {
+        alert(message); // В будущем можно заменить на красивые уведомления
+    }
+}
+
+// Глобальные функции для навигации
+window.showMenu = () => navigation.showMenu();
+window.showLogin = () => navigation.showLogin();
+window.showRegister = () => navigation.showRegister();
+window.showProfile = () => navigation.showProfile();
+window.showLeaderboard = () => navigation.showLeaderboard();
+window.refreshLeaderboard = () => navigation.loadLeaderboard();
+window.startNewGame = () => navigation.showGame();
+
+// Инициализация навигации
+const navigation = new NavigationManager();
+
+// Инициализация игры
 const game = new Game(); 
+
+// Делаем игру доступной глобально
+window.game = game;
+window.navigation = navigation; 
