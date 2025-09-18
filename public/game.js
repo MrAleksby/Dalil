@@ -1813,8 +1813,6 @@ class NavigationManager {
                 rankIndex++;
             });
             
-            const totalGamesElement = document.querySelector('[data-stat="totalGames"]');
-            if (totalGamesElement) totalGamesElement.textContent = userEntry ? '1' : '0';
             
             const bestScoreElement = document.querySelector('[data-stat="bestScore"]');
             if (bestScoreElement) bestScoreElement.textContent = bestScore.toLocaleString();
