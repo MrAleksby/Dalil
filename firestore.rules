@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Правила для коллекции пользователей
+    match /users/{userId} {
+      // Разрешаем чтение всем (для поиска пригласившего)
+      allow read: if true;
+      // Разрешаем запись только аутентифицированным пользователям
+      allow write: if request.auth != null;
+    }
+    
+    // Правила для коллекции рейтинга
+    match /leaderboard/{document} {
+      // Разрешаем чтение всем
+      allow read: if true;
+      // Разрешаем запись только аутентифицированным пользователям
+      allow write: if request.auth != null;
+    }
+  }
+}

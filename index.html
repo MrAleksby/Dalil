@@ -6,9 +6,17 @@
     <title>BMK Jump</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
     <link rel="stylesheet" href="styles.css">
-    <!-- Mock Firebase для тестирования -->
-    <script src="mock-firebase.js"></script>
+    <!-- Firebase SDK (стабильная версия) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+    
+    <!-- Firebase конфигурация -->
     <script src="firebase-config.js"></script>
+    
+    <!-- Mock Firebase отключен для продакшена -->
+    <!-- <script src="mock-firebase.js"></script> -->
 </head>
 <body>
     <!-- Главное меню -->
@@ -19,14 +27,33 @@
                 <p>Jump Game</p>
             </div>
             
+            <!-- Розыгрыш баннер -->
+            <div class="prize-banner">
+                <div class="prize-icon">🏆</div>
+                <div class="prize-text">
+                    <span class="prize-title">РОЗЫГРЫШ</span>
+                    <span class="prize-amount">800 ROBUX</span>
+                </div>
+                <div class="prize-subtitle">1 место в рейтинге!</div>
+                <div class="prize-deadline">До 25.09.2025 17:00 (Ташкент)</div>
+                <div class="age-limit">
+                    Участие только до 14 лет + подписка на 
+                    <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a>
+                </div>
+            </div>
+            
             <div class="menu-buttons">
-                <button id="startGameBtn" class="menu-btn">Начать игру</button>
+                <button id="startGameBtn" class="menu-btn disabled" disabled>Начать игру</button>
                 <button id="leaderboardBtn" class="menu-btn">Рейтинг</button>
-                <button id="profileBtn" class="menu-btn">Профиль</button>
+                <button id="profileBtn" class="menu-btn disabled" disabled>Профиль</button>
                 <button id="loginBtn" class="menu-btn secondary">Войти</button>
                 <button id="registerBtn" class="menu-btn secondary">Регистрация</button>
                 <button id="logoutBtn" class="menu-btn secondary hidden">Выйти</button>
             </div>
+            
+        <div id="authRequiredMessage" class="auth-required-message">
+            <p>⚠️ Для игры необходимо войти в систему</p>
+        </div>
             
             <div class="connection-status">
                 <span id="connectionIndicator" class="status-indicator">●</span>
@@ -63,7 +90,7 @@
             <h2>Регистрация</h2>
             <form id="registerForm">
                 <div class="input-group">
-                    <input type="text" id="registerUsername" placeholder="Имя пользователя (только латиница)" required>
+                    <input type="text" id="registerUsername" placeholder="Username (как в Telegram): username" required>
                     <div class="validation-message" id="registerUsernameError"></div>
                 </div>
                 <div class="input-group">
@@ -73,6 +100,12 @@
                 <div class="input-group">
                     <input type="password" id="confirmPassword" placeholder="Подтвердите пароль" required>
                     <div class="validation-message" id="confirmPasswordError"></div>
+                </div>
+                <div class="input-group">
+                    <select id="invitedBy" class="auth-select" size="5">
+                        <option value="">Кто тебя пригласил? (необязательно)</option>
+                    </select>
+                    <div class="validation-message" id="invitedByError"></div>
                 </div>
                 <button type="submit" class="auth-btn">Зарегистрироваться</button>
             </form>
@@ -94,11 +127,6 @@
             
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h4>Количество игр</h4>
-                    <span class="stat-value" data-stat="totalGames">0</span>
-                </div>
-                
-                <div class="stat-card">
                     <h4>Лучший результат</h4>
                     <span class="stat-value" data-stat="bestScore">0</span>
                 </div>
@@ -108,6 +136,21 @@
                     <span class="stat-value" data-stat="currentRank">-</span>
                 </div>
                 
+                <div class="stat-card">
+                    <h4>Приглашено друзей</h4>
+                    <span class="stat-value" data-stat="invitedFriends">0</span>
+                <div class="referral-requirement">
+                    <span class="requirement-text">Нужно: 3+ друзей до 14 лет + подписка на <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a></span>
+                </div>
+                </div>
+                
+            </div>
+            
+            <div class="invited-friends-section">
+                <h4>Приглашенные друзья</h4>
+                <div id="invitedFriendsList" class="friends-list">
+                    <p class="no-friends">Пока никого не пригласили</p>
+                </div>
             </div>
             
             <div class="profile-actions">
@@ -121,6 +164,30 @@
     <div id="leaderboard-screen" class="screen hidden">
         <div class="leaderboard-container">
             <h2>Глобальный рейтинг BMK</h2>
+            <div class="prize-info">
+                <span class="prize-trophy">🏆</span>
+                <span class="prize-text-small">1 место = 800 ROBUX</span>
+                <div class="prize-requirement">Пригласи 3 друзей (все до 14 лет + ВСЕ подписаны на канал <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a>)!</div>
+            </div>
+            
+            <div class="winner-rules">
+                <h4>🏆 Как определяется победитель:</h4>
+                <ul class="rules-list">
+                    <li>Победитель = игрок с НАИВЫСШИМ счетом</li>
+                    <li>При равенстве = кто раньше набрал этот счет</li>
+                    <li>Фиксация: 25.09.2025 в 17:00 (Ташкент)</li>
+                </ul>
+                
+                <div class="username-requirement">
+                    <h5>⚠️ ВАЖНО! УЧАСТИЕ ТОЛЬКО ДЛЯ:</h5>
+                    <ul class="username-rules">
+                        <li>Username в игре = username в Telegram</li>
+                        <li>Все приглашенные друзья тоже должны иметь совпадающие username</li>
+                        <li>Участники с несовпадающими username НЕ участвуют в розыгрыше</li>
+                        <li>ВСЕ участники должны быть подписаны на канал <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a></li>
+                    </ul>
+                </div>
+            </div>
             <div class="leaderboard-controls">
                 <button onclick="refreshLeaderboard()" class="menu-btn">Обновить</button>
                 <button onclick="showMenu()" class="menu-btn">Меню</button>

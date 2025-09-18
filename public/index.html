@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BMK Jump</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDK (стабильная версия) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+    
+    <!-- Firebase конфигурация -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Mock Firebase отключен для продакшена -->
+    <!-- <script src="mock-firebase.js"></script> -->
+</head>
+<body>
+    <!-- Главное меню -->
+    <div id="main-menu" class="screen">
+        <div class="menu-container">
+            <div class="logo">
+                <h1>BMK</h1>
+                <p>Jump Game</p>
+            </div>
+            
+            <div class="menu-buttons">
+                <button id="startGameBtn" class="menu-btn disabled" disabled>Начать игру</button>
+                <button id="leaderboardBtn" class="menu-btn">Рейтинг</button>
+                <button id="profileBtn" class="menu-btn disabled" disabled>Профиль</button>
+                <button id="loginBtn" class="menu-btn secondary">Войти</button>
+                <button id="registerBtn" class="menu-btn secondary">Регистрация</button>
+                <button id="logoutBtn" class="menu-btn secondary hidden">Выйти</button>
+            </div>
+            
+        <div id="authRequiredMessage" class="auth-required-message">
+            <p>⚠️ Для игры необходимо войти в систему</p>
+        </div>
+            
+            <div class="connection-status">
+                <span id="connectionIndicator" class="status-indicator">●</span>
+                <span id="connectionText">Подключение...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран входа -->
+    <div id="login-screen" class="screen hidden">
+        <div class="auth-container">
+            <h2>Вход в игру</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <input type="text" id="loginUsername" placeholder="Имя пользователя" required>
+                    <div class="validation-message" id="loginUsernameError"></div>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="loginPassword" placeholder="Пароль" required>
+                    <div class="validation-message" id="loginPasswordError"></div>
+                </div>
+                <button type="submit" class="auth-btn">Войти</button>
+            </form>
+            <div class="auth-links">
+                <button onclick="showRegister()" class="link-btn">Нет аккаунта? Зарегистрироваться</button>
+                <button onclick="showMenu()" class="link-btn">Назад в меню</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран регистрации -->
+    <div id="register-screen" class="screen hidden">
+        <div class="auth-container">
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <div class="input-group">
+                    <input type="text" id="registerUsername" placeholder="Username (как в Telegram): username" required>
+                    <div class="validation-message" id="registerUsernameError"></div>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="registerPassword" placeholder="Пароль (минимум 6 символов)" required>
+                    <div class="validation-message" id="registerPasswordError"></div>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="confirmPassword" placeholder="Подтвердите пароль" required>
+                    <div class="validation-message" id="confirmPasswordError"></div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="invitedBySearch" class="auth-input" placeholder="Введите имя для поиска..." autocomplete="off">
+                    <select id="invitedBy" class="auth-select" size="3">
+                        <option value="">Кто тебя пригласил? (необязательно)</option>
+                    </select>
+                    <div class="validation-message" id="invitedByError"></div>
+                </div>
+                <button type="submit" class="auth-btn">Зарегистрироваться</button>
+            </form>
+            <div class="auth-links">
+                <button onclick="showLogin()" class="link-btn">Уже есть аккаунт? Войти</button>
+                <button onclick="showMenu()" class="link-btn">Назад в меню</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран профиля -->
+    <div id="profile-screen" class="screen hidden">
+        <div class="profile-container">
+            <h2>Профиль игрока</h2>
+            <div class="player-info">
+                <h3 id="playerName">Player1</h3>
+                <p id="playerJoinDate">Игрок с 15 января 2025</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Количество игр</h4>
+                    <span class="stat-value" data-stat="totalGames">0</span>
+                </div>
+                
+                <div class="stat-card">
+                    <h4>Лучший результат</h4>
+                    <span class="stat-value" data-stat="bestScore">0</span>
+                </div>
+                
+                <div class="stat-card">
+                    <h4>Место в рейтинге</h4>
+                    <span class="stat-value" data-stat="currentRank">-</span>
+                </div>
+                
+                <div class="stat-card">
+                    <h4>Приглашено друзей</h4>
+                    <span class="stat-value" data-stat="invitedFriends">0</span>
+                </div>
+                
+            </div>
+            
+            <div class="invited-friends-section">
+                <h4>Приглашенные друзья</h4>
+                <div id="invitedFriendsList" class="friends-list">
+                    <p class="no-friends">Пока никого не пригласили</p>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <button onclick="showLeaderboard()" class="menu-btn">Рейтинг</button>
+                <button onclick="showMenu()" class="menu-btn">Меню</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран рейтинга -->
+    <div id="leaderboard-screen" class="screen hidden">
+        <div class="leaderboard-container">
+            <h2>Глобальный рейтинг BMK</h2>
+            <div class="leaderboard-controls">
+                <button onclick="refreshLeaderboard()" class="menu-btn">Обновить</button>
+                <button onclick="showMenu()" class="menu-btn">Меню</button>
+            </div>
+            <div id="leaderboardList" class="leaderboard-list">
+                <div class="loading">Загрузка рейтинга...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Игровой экран -->
+    <div id="game-screen" class="screen hidden">
+        <div id="game-container">
+            <button id="musicToggle" class="music-button">
+                <span class="music-icon">🔊</span>
+            </button>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Экран окончания игры -->
+    <div id="game-over-screen" class="screen hidden">
+        <div class="game-over-container">
+            <h2>Игра окончена!</h2>
+            <div class="score-display">
+                <h3>Ваш результат: <span id="finalScore">0</span></h3>
+                <div id="newRecord" class="new-record hidden">🎉 Новый рекорд! 🎉</div>
+            </div>
+            
+            <div class="game-over-actions">
+                <button onclick="startNewGame()" class="menu-btn">Играть снова</button>
+                <button onclick="showProfile()" class="menu-btn">Профиль</button>
+                <button onclick="showMenu()" class="menu-btn">Меню</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html> 

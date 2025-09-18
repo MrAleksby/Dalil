@@ -106,7 +106,7 @@ class Game {
         // Инициализация аудио
         this.initializeAudio();
         
-        this.startNewGame();
+        // НЕ запускаем игру автоматически - только при нажатии кнопки
     }
     
     setupCanvas() {
@@ -259,13 +259,6 @@ class Game {
             right: false
         };
         
-        // Добавляем параметры для логотипа
-        this.logo = {
-            text: 'DALIL',
-            x: 0,
-            y: 0,
-            alpha: 0.2  // Прозрачность логотипа
-        };
         
         // Сбрасываем параметры скримера
         this.resetJumpscare();
@@ -538,59 +531,139 @@ class Game {
 
         // Размеры частей тела
         const headRadius = this.player.width/2;
-        const legWidth = headRadius/2;
-        const legHeight = headRadius;
-        const bootHeight = headRadius/2;
-        const hornLength = headRadius/2;
+        const bodyWidth = headRadius * 1.3;
+        const bodyHeight = headRadius * 1.8;
+        const legWidth = headRadius/2.2;
+        const legHeight = headRadius * 1.3;
+        const bootHeight = headRadius/3;
 
-        // Рисуем тело (голову)
-        this.ctx.beginPath();
-        this.ctx.fillStyle = '#FF69B4'; // Розовый цвет
-        this.ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
-        this.ctx.fill();
+        // Рисуем голову (БОЛЬШАЯ, как в Roblox)
+        this.ctx.fillStyle = '#F4C2A1'; // Светлый цвет кожи
+        this.ctx.fillRect(-headRadius * 1.2, -headRadius * 1.2, headRadius * 2.4, headRadius * 2.4);
 
-        // Рисуем рожки
-        this.ctx.beginPath();
-        this.ctx.fillStyle = '#FF69B4';
-        // Левый рожок
-        this.ctx.moveTo(-headRadius/2, -headRadius/2);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius+hornLength);
-        this.ctx.fill();
-        // Правый рожок
-        this.ctx.beginPath();
-        this.ctx.moveTo(headRadius/2, -headRadius/2);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius+hornLength);
-        this.ctx.fill();
+        // Рисуем волосы (оранжевые, БОЛЬШИЕ)
+        this.ctx.fillStyle = '#FF8C00'; // Ярко-оранжевый цвет
+        this.ctx.fillRect(-headRadius * 1.1, -headRadius * 1.4, headRadius * 2.2, headRadius * 0.8);
+        
+        // Боковые части волос (БОЛЬШИЕ)
+        this.ctx.fillRect(-headRadius * 1.3, -headRadius * 1.0, headRadius * 0.4, headRadius * 1.0);
+        this.ctx.fillRect(headRadius * 0.9, -headRadius * 1.0, headRadius * 0.4, headRadius * 1.0);
+        
+        // Челка с прядями
+        this.ctx.fillRect(-headRadius * 0.8, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
+        this.ctx.fillRect(-headRadius * 0.4, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
+        this.ctx.fillRect(0, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
+        this.ctx.fillRect(headRadius * 0.4, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
+        
+        // Тени в волосах
+        this.ctx.fillStyle = '#E67E00';
+        this.ctx.fillRect(-headRadius * 1.1, -headRadius * 1.4, headRadius * 2.2, headRadius * 0.15);
 
-        // Рисуем глаза
+        // Рисуем глаза (ОГРОМНЫЕ, как в Roblox)
         this.ctx.fillStyle = 'white';
         this.ctx.beginPath();
-        this.ctx.arc(-headRadius/3, -headRadius/4, headRadius/4, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/3, -headRadius/4, headRadius/4, 0, Math.PI * 2);
+        this.ctx.arc(-headRadius/2, -headRadius/3, headRadius/3, 0, Math.PI * 2);
+        this.ctx.arc(headRadius/2, -headRadius/3, headRadius/3, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Зрачки (БОЛЬШИЕ)
+        this.ctx.fillStyle = 'black';
+        this.ctx.beginPath();
+        this.ctx.arc(-headRadius/2, -headRadius/3, headRadius/5, 0, Math.PI * 2);
+        this.ctx.arc(headRadius/2, -headRadius/3, headRadius/5, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Блики в глазах (БОЛЬШИЕ)
+        this.ctx.fillStyle = 'white';
+        this.ctx.beginPath();
+        this.ctx.arc(-headRadius/2 - headRadius/15, -headRadius/3 - headRadius/15, headRadius/12, 0, Math.PI * 2);
+        this.ctx.arc(headRadius/2 - headRadius/15, -headRadius/3 - headRadius/15, headRadius/12, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Рисуем улыбку
+        // Рисуем брови (БОЛЬШИЕ)
+        this.ctx.fillStyle = '#8B4513';
+        this.ctx.fillRect(-headRadius/2, -headRadius/2, headRadius/3, headRadius/12);
+        this.ctx.fillRect(headRadius/6, -headRadius/2, headRadius/3, headRadius/12);
+
+        // Рисуем нос (БОЛЬШОЙ)
+        this.ctx.fillStyle = '#F4C2A1';
+        this.ctx.fillRect(-headRadius/15, -headRadius/6, headRadius/7, headRadius/10);
+
+        // Рисуем рот (БОЛЬШАЯ улыбка)
         this.ctx.beginPath();
-        this.ctx.strokeStyle = 'white';
-        this.ctx.lineWidth = 2;
-        this.ctx.arc(0, 0, headRadius/3, 0, Math.PI);
+        this.ctx.strokeStyle = 'black';
+        this.ctx.lineWidth = 4;
+        this.ctx.arc(0, headRadius/6, headRadius/2, 0, Math.PI);
         this.ctx.stroke();
+        
+        // Рисуем зубы
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(-headRadius/6, headRadius/8, headRadius/8, headRadius/15);
+        this.ctx.fillRect(headRadius/20, headRadius/8, headRadius/8, headRadius/15);
 
-        // Рисуем ноги
-        this.ctx.fillStyle = 'black';
+        // Рисуем куртку (бирюзовая/зеленая)
+        this.ctx.fillStyle = '#20B2AA'; // Бирюзовый цвет
+        this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, bodyHeight);
+        
+        // Рисуем воротник куртки (белый)
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, headRadius/3);
+        
+        // Рисуем белые полосы на плечах
+        this.ctx.fillRect(-bodyWidth/2, -headRadius/3, bodyWidth, headRadius/8);
+        this.ctx.fillRect(-bodyWidth/2, headRadius/6, bodyWidth, headRadius/8);
+
+        // Рисуем белую футболку под курткой
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(-bodyWidth/2 + headRadius/8, -headRadius/6, bodyWidth - headRadius/4, bodyHeight/2.5);
+
+        // Рисуем номер 456 на футболке (ОГРОМНЫЙ и яркий!)
+        this.ctx.fillStyle = 'red'; // КРАСНЫЙ цвет для максимального контраста!
+        this.ctx.font = `bold ${headRadius/0.8}px Arial`; // ЕЩЕ БОЛЬШЕ!
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('456', 0, headRadius/6);
+        
+        // Добавляем черную обводку для четкости
+        this.ctx.strokeStyle = 'black';
+        this.ctx.lineWidth = 4;
+        this.ctx.strokeText('456', 0, headRadius/6);
+        
+        // Добавляем белую тень для еще большей четкости
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = `bold ${headRadius/0.8}px Arial`;
+        this.ctx.fillText('456', 2, headRadius/6 + 2);
+        
+        // Возвращаем красный цвет
+        this.ctx.fillStyle = 'red';
+        this.ctx.fillText('456', 0, headRadius/6);
+
+        // Рисуем руки (согнутые в локтях, как в примере)
+        this.ctx.fillStyle = '#F4C2A1';
+        // Левая рука (согнутая)
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/6, -headRadius/8, headRadius/6, headRadius * 0.9);
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/3, headRadius/4, headRadius/4, headRadius/3);
+        // Правая рука (согнутая)
+        this.ctx.fillRect(bodyWidth/2, -headRadius/8, headRadius/6, headRadius * 0.9);
+        this.ctx.fillRect(bodyWidth/2 + headRadius/8, headRadius/4, headRadius/4, headRadius/3);
+
+        // Рисуем штаны (бирюзовые)
+        this.ctx.fillStyle = '#20B2AA';
         // Левая нога
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius, legWidth, legHeight);
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
         // Правая нога
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius, legWidth, legHeight);
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
 
-        // Рисуем ботинки
-        this.ctx.fillStyle = '#FF69B4';
-        // Левый ботинок
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius+legHeight, legWidth, bootHeight);
-        // Правый ботинок
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius+legHeight, legWidth, bootHeight);
+        // Рисуем белые кроссовки
+        this.ctx.fillStyle = 'white';
+        // Левый кроссовок
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
+        // Правый кроссовок
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
+        
+        // Подошва кроссовок (белая)
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight+bootHeight, legWidth, headRadius/10);
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight+bootHeight, legWidth, headRadius/10);
 
         this.ctx.restore();
     }
@@ -603,61 +676,73 @@ class Game {
         
         this.ctx.translate(x + this.enemy.width/2, y + this.enemy.height/2);
 
-        // Размеры частей тела
+        // Размеры Front Man (точные пропорции)
         const headRadius = this.enemy.width/2;
-        const legWidth = headRadius/2;
-        const legHeight = headRadius;
-        const bootHeight = headRadius/2;
-        const hornLength = headRadius/2;
+        const bodyWidth = headRadius * 1.4;
+        const bodyHeight = headRadius * 2.0;
+        const legWidth = headRadius/2.5;
+        const legHeight = headRadius * 1.4;
+        const bootHeight = headRadius/4;
 
-        // Рисуем тело (голову) - красного цвета
+        // Рисуем голову (круглая, как в примере)
+        this.ctx.fillStyle = '#000000'; // Черный капюшон
         this.ctx.beginPath();
-        this.ctx.fillStyle = '#FF0000';
-        this.ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
+        this.ctx.arc(0, -headRadius/2, headRadius, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Рисуем рожки - темно-красные
+        // Рисуем белый круг на маске
+        this.ctx.fillStyle = '#FFFFFF';
         this.ctx.beginPath();
-        this.ctx.fillStyle = '#8B0000';
-        // Левый рожок
-        this.ctx.moveTo(-headRadius/2, -headRadius/2);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius+hornLength);
+        this.ctx.arc(0, -headRadius/2, headRadius/3, 0, Math.PI * 2);
         this.ctx.fill();
-        // Правый рожок
-        this.ctx.beginPath();
-        this.ctx.moveTo(headRadius/2, -headRadius/2);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius+hornLength);
-        this.ctx.fill();
-
-        // Рисуем глаза - желтые
-        this.ctx.fillStyle = '#FFD700';
-        this.ctx.beginPath();
-        this.ctx.arc(-headRadius/3, -headRadius/4, headRadius/4, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/3, -headRadius/4, headRadius/4, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        // Рисуем злую улыбку
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = '#FFD700';
-        this.ctx.lineWidth = 2;
-        this.ctx.arc(0, headRadius/4, headRadius/3, 0, Math.PI, true);  // Перевернутая улыбка
+        
+        // Черная обводка белого круга
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 3;
         this.ctx.stroke();
 
-        // Рисуем ноги - черные
-        this.ctx.fillStyle = 'black';
-        // Левая нога
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius, legWidth, legHeight);
-        // Правая нога
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius, legWidth, legHeight);
+        // Рисуем красный комбинезон
+        this.ctx.fillStyle = '#FF0000'; // Ярко-красный
+        this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, bodyHeight);
+        
+        // Рисуем черную вертикальную линию (молния)
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/20, -headRadius/2, headRadius/10, bodyHeight);
 
-        // Рисуем ботинки - темно-красные
-        this.ctx.fillStyle = '#8B0000';
+        // Рисуем черные карманы на груди
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/3, -headRadius/4, headRadius/4, headRadius/6);
+        this.ctx.fillRect(headRadius/6, -headRadius/4, headRadius/4, headRadius/6);
+
+        // Рисуем черный пояс
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2, headRadius/3, bodyWidth, headRadius/8);
+
+        // Рисуем руки (красные с черными манжетами)
+        this.ctx.fillStyle = '#FF0000';
+        // Левая рука
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, -headRadius/8, headRadius/5, headRadius * 1.2);
+        // Правая рука
+        this.ctx.fillRect(bodyWidth/2, -headRadius/8, headRadius/5, headRadius * 1.2);
+        
+        // Черные манжеты на руках
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, headRadius/2, headRadius/5, headRadius/6);
+        this.ctx.fillRect(bodyWidth/2, headRadius/2, headRadius/5, headRadius/6);
+
+        // Рисуем ноги (красные)
+        this.ctx.fillStyle = '#FF0000';
+        // Левая нога
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+        // Правая нога
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+
+        // Рисуем черные ботинки
+        this.ctx.fillStyle = '#000000';
         // Левый ботинок
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius+legHeight, legWidth, bootHeight);
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
         // Правый ботинок
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius+legHeight, legWidth, bootHeight);
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
 
         this.ctx.restore();
     }
@@ -672,55 +757,73 @@ class Game {
         this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
         this.ctx.scale(this.jumpscare.scale, this.jumpscare.scale);
         
-        // Размеры в 2 раза больше обычного
+        // Размеры Front Man (в 2 раза больше обычного)
         const headRadius = this.player.width;
-        const legWidth = headRadius/2;
-        const legHeight = headRadius;
-        const hornLength = headRadius/2;
-        
-        // Рисуем злого Кенито
-        // Тело (голова) - ярко-красного цвета
+        const bodyWidth = headRadius * 1.4;
+        const bodyHeight = headRadius * 2.0;
+        const legWidth = headRadius/2.5;
+        const legHeight = headRadius * 1.4;
+        const bootHeight = headRadius/4;
+
+        // Рисуем голову (круглая, как в примере)
+        this.ctx.fillStyle = '#000000'; // Черный капюшон
         this.ctx.beginPath();
+        this.ctx.arc(0, -headRadius/2, headRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Рисуем белый круг на маске (БОЛЬШОЙ)
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.beginPath();
+        this.ctx.arc(0, -headRadius/2, headRadius/2.5, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Черная обводка белого круга
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 6;
+        this.ctx.stroke();
+
+        // Рисуем красный комбинезон
+        this.ctx.fillStyle = '#FF0000'; // Ярко-красный
+        this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, bodyHeight);
+        
+        // Рисуем черную вертикальную линию (молния)
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/20, -headRadius/2, headRadius/10, bodyHeight);
+
+        // Рисуем черные карманы на груди
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/3, -headRadius/4, headRadius/4, headRadius/6);
+        this.ctx.fillRect(headRadius/6, -headRadius/4, headRadius/4, headRadius/6);
+
+        // Рисуем черный пояс
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2, headRadius/3, bodyWidth, headRadius/8);
+
+        // Рисуем руки (красные с черными манжетами)
         this.ctx.fillStyle = '#FF0000';
-        this.ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
-        this.ctx.fill();
+        // Левая рука
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, -headRadius/8, headRadius/5, headRadius * 1.2);
+        // Правая рука
+        this.ctx.fillRect(bodyWidth/2, -headRadius/8, headRadius/5, headRadius * 1.2);
         
-        // Рожки - темно-красные и острые
-        this.ctx.beginPath();
-        this.ctx.fillStyle = '#8B0000';
-        // Левый рожок
-        this.ctx.moveTo(-headRadius/2, -headRadius/2);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius);
-        this.ctx.lineTo(-headRadius-hornLength/2, -headRadius+hornLength/2);
-        this.ctx.fill();
-        // Правый рожок
-        this.ctx.beginPath();
-        this.ctx.moveTo(headRadius/2, -headRadius/2);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius);
-        this.ctx.lineTo(headRadius+hornLength/2, -headRadius+hornLength/2);
-        this.ctx.fill();
-        
-        // Глаза - яркие желтые с красным ободком
-        this.ctx.fillStyle = '#FFD700';
-        this.ctx.strokeStyle = '#FF0000';
-        this.ctx.lineWidth = 3;
-        this.ctx.beginPath();
-        this.ctx.arc(-headRadius/3, -headRadius/4, headRadius/3, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/3, -headRadius/4, headRadius/3, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.stroke();
-        
-        // Злая улыбка - острые зубы
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = '#FFD700';
-        this.ctx.lineWidth = 3;
-        this.ctx.moveTo(-headRadius/2, headRadius/4);
-        for(let i = 0; i < 5; i++) {
-            const x = -headRadius/2 + (i * headRadius/2);
-            this.ctx.lineTo(x + headRadius/8, headRadius/2);
-            this.ctx.lineTo(x + headRadius/4, headRadius/4);
-        }
-        this.ctx.stroke();
+        // Черные манжеты на руках
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, headRadius/2, headRadius/5, headRadius/6);
+        this.ctx.fillRect(bodyWidth/2, headRadius/2, headRadius/5, headRadius/6);
+
+        // Рисуем ноги (красные)
+        this.ctx.fillStyle = '#FF0000';
+        // Левая нога
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+        // Правая нога
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+
+        // Рисуем черные ботинки
+        this.ctx.fillStyle = '#000000';
+        // Левый ботинок
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
+        // Правый ботинок
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
         
         this.ctx.restore();
     }
@@ -778,17 +881,6 @@ class Game {
             this.drawEvilKenito(this.enemy.x, this.enemy.y);
         }
         
-        // Рисуем логотип с эффектом свечения
-        this.ctx.save();
-        this.ctx.globalAlpha = this.logo.alpha;
-        this.ctx.fillStyle = '#fff';
-        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        this.ctx.shadowBlur = 10;
-        this.ctx.font = 'bold 48px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(this.logo.text, this.canvas.width / 2, 70);
-        this.ctx.globalAlpha = 1.0;
-        this.ctx.restore();
         
         // Рисуем счет с красивым оформлением
         this.ctx.save();
@@ -824,9 +916,7 @@ class Game {
             this.ctx.fillStyle = '#fff';
             this.ctx.font = 'bold 48px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText('DALIL', this.canvas.width/2, this.canvas.height/2 - 60);
-            this.ctx.font = '30px Arial';
-            this.ctx.fillText('Игра окончена!', this.canvas.width/2, this.canvas.height/2);
+            this.ctx.fillText('Игра окончена!', this.canvas.width/2, this.canvas.height/2 - 20);
             this.ctx.font = '20px Arial';
             this.ctx.fillText(`Финальный счет: ${Math.floor(this.score)}`, this.canvas.width/2, this.canvas.height/2 + 40);
         }
@@ -932,7 +1022,6 @@ class Game {
 
     playBackgroundMusic() {
         if (this.hasUserInteracted && !this.isMusicPlaying) {
-            console.log('Попытка воспроизведения музыки...');
             const playPromise = this.backgroundMusic.play();
             
             if (playPromise !== undefined) {
@@ -992,16 +1081,14 @@ class Game {
         console.log('Игра окончена! Финальный счет:', finalScore);
         
         // Сохраняем результат если пользователь авторизован
-        const currentUser = window.simpleGetCurrentUser();
+        const currentUser = window.auth.currentUser;
         if (currentUser) {
             try {
                 await this.saveGameResult(finalScore);
-                console.log('Результат сохранен');
+                console.log('Результат сохранен в Firestore');
             } catch (error) {
                 console.error('Ошибка сохранения результата:', error);
             }
-        } else {
-            console.log('Пользователь не авторизован, результат не сохраняется');
         }
         
         // Показываем экран окончания игры
@@ -1020,52 +1107,47 @@ class Game {
      */
     async saveGameResult(score) {
         try {
-            // Получаем текущего пользователя из простой системы
-            const currentUser = window.simpleGetCurrentUser();
+            // Получаем текущего пользователя из Firebase
+            const currentUser = window.auth.currentUser;
             if (!currentUser) {
-                console.log('Пользователь не авторизован, результат не сохраняется');
                 return;
             }
             
-            const username = currentUser.username;
-            console.log('Сохраняем результат для пользователя:', username, 'счет:', score);
+            const username = currentUser.email.split('@')[0]; // Извлекаем имя из email
+            console.log('Сохраняем результат в Firestore для пользователя:', username, 'счет:', score);
             
-            // Загружаем существующий рейтинг
-            let leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
+            // Сохраняем в Firestore
+            const leaderboardRef = window.db.collection('leaderboard').doc(currentUser.uid);
+            const leaderboardDoc = await leaderboardRef.get();
             
-            // Проверяем, есть ли уже запись этого пользователя
-            const existingIndex = leaderboard.findIndex(entry => entry.username === username);
-            
-            if (existingIndex !== -1) {
+            if (leaderboardDoc.exists) {
                 // Обновляем существующую запись только если новый счет лучше
-                const existingScore = leaderboard[existingIndex].score;
+                const existingScore = leaderboardDoc.data().score;
                 if (score > existingScore) {
-                    leaderboard[existingIndex] = {
+                    await leaderboardRef.set({
                         username: username,
-                score: score,
-                        date: new Date().toISOString()
-                    };
-                    console.log('Обновлена лучшая запись пользователя:', username, 'новый счет:', score);
+                        score: score,
+                        date: new Date().toISOString(),
+                        uid: currentUser.uid
+                    });
+                    console.log('Обновлена лучшая запись пользователя в Firestore:', username, 'новый счет:', score);
             } else {
                     console.log('Счет не улучшен, запись не обновляется');
                     return;
                 }
             } else {
                 // Добавляем новую запись
-                leaderboard.push({
+                await leaderboardRef.set({
                     username: username,
                     score: score,
-                    date: new Date().toISOString()
+                    date: new Date().toISOString(),
+                    uid: currentUser.uid
                 });
-                console.log('Добавлена новая запись в рейтинг:', username, 'счет:', score);
+                console.log('Добавлена новая запись в рейтинг Firestore:', username, 'счет:', score);
             }
             
-            // Сохраняем обновленный рейтинг
-            localStorage.setItem('simple_leaderboard', JSON.stringify(leaderboard));
-            console.log('Рейтинг сохранен в localStorage');
-            
         } catch (error) {
-            console.error('Ошибка сохранения результата:', error);
+            console.error('Ошибка сохранения результата в Firestore:', error);
         }
     }
 
@@ -1100,7 +1182,6 @@ class Game {
             if (userDoc.exists) {
                 const userData = userDoc.data();
                 const stats = userData.stats || {
-                    totalGames: 0,
                     bestScore: 0,
                     totalScore: 0,
                     averageScore: 0,
@@ -1110,9 +1191,8 @@ class Game {
                 };
                 
                 // Обновляем статистику
-                stats.totalGames += 1;
                 stats.totalScore += score;
-                stats.averageScore = Math.round(stats.totalScore / stats.totalGames);
+                stats.averageScore = Math.round(stats.totalScore / (stats.gamesPlayedToday || 1));
                 
                 if (score > stats.bestScore) {
                     stats.bestScore = score;
@@ -1177,20 +1257,6 @@ class Game {
         }
     }
 
-    /**
-     * Получение кода страны
-     */
-    getCountryCode() {
-        // Простая реализация - можно улучшить
-        return 'RU';
-    }
-
-    /**
-     * Получение типа устройства
-     */
-    getDeviceType() {
-        return this.isMobile ? 'mobile' : 'desktop';
-    }
 
     /**
      * Показ экрана окончания игры
@@ -1219,7 +1285,7 @@ class Game {
             }
 
             // Проверяем, новый ли это рекорд
-            const currentUser = window.simpleGetCurrentUser();
+            const currentUser = window.auth.currentUser;
             if (currentUser) {
                 this.checkNewRecord(finalScore);
             }
@@ -1233,16 +1299,16 @@ class Game {
      */
     async checkNewRecord(score) {
         try {
-            const currentUser = window.simpleGetCurrentUser();
+            const currentUser = window.auth.currentUser;
             if (!currentUser) return;
             
-            // Загружаем рейтинг и проверяем лучший результат пользователя
-            const leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
-            const userEntry = leaderboard.find(entry => entry.username === currentUser.username);
+            // Загружаем рейтинг и проверяем лучший результат пользователя из Firestore
+            const leaderboardDoc = await window.db.collection('leaderboard').doc(currentUser.uid).get();
             
-            if (userEntry) {
+            if (leaderboardDoc.exists) {
                 // Проверяем, является ли текущий счет новым рекордом
-                if (score > userEntry.score) {
+                const existingScore = leaderboardDoc.data().score;
+                if (score > existingScore) {
                     const newRecordElement = document.getElementById('newRecord');
                     if (newRecordElement) {
                         newRecordElement.classList.remove('hidden');
@@ -1284,14 +1350,68 @@ class NavigationManager {
         document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
 
         // Валидация в реальном времени
-        document.getElementById('registerUsername').addEventListener('input', (e) => this.validateUsername(e.target));
+        document.getElementById('registerUsername').addEventListener('input', (e) => {
+            this.validateUsername(e.target);
+            // Проверяем доступность имени с задержкой
+            clearTimeout(this.usernameCheckTimeout);
+            this.usernameCheckTimeout = setTimeout(() => {
+                this.checkUsernameAvailability(e.target.value);
+            }, 500);
+        });
         document.getElementById('registerPassword').addEventListener('input', (e) => this.validatePassword(e.target));
         document.getElementById('confirmPassword').addEventListener('input', (e) => this.validateConfirmPassword(e.target));
+        
+        // Заполняем выпадающий список пользователями
+        this.populateInvitedByDropdown();
     }
 
     hideAllScreens() {
         const screens = document.querySelectorAll('.screen');
         screens.forEach(screen => screen.classList.add('hidden'));
+    }
+
+    // Заполнение выпадающего списка пользователями
+    async populateInvitedByDropdown() {
+        try {
+            const dropdown = document.getElementById('invitedBy');
+            if (!dropdown) return;
+
+            // Очищаем список
+            dropdown.innerHTML = '<option value="">Кто тебя пригласил? (необязательно)</option>';
+
+            if (window.db) {
+                const usersSnapshot = await window.db.collection('users').get();
+                const allUsers = [];
+                
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    if (userData.username) {
+                        allUsers.push({
+                            id: doc.id,
+                            username: userData.username
+                        });
+                    }
+                });
+
+                // Сортируем по алфавиту
+                allUsers.sort((a, b) => a.username.localeCompare(b.username));
+
+                console.log('Загружено пользователей:', allUsers.length);
+                console.log('Пользователи (по алфавиту):', allUsers.map(u => u.username));
+
+                // Добавляем пользователей в выпадающий список
+                allUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = user.username;
+                    dropdown.appendChild(option);
+                });
+
+                console.log('Выпадающий список обновлен с', allUsers.length, 'пользователями');
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки списка пользователей:', error);
+        }
     }
 
     showScreen(screenId) {
@@ -1313,8 +1433,8 @@ class NavigationManager {
     }
 
     showProfile() {
-        // Проверяем, авторизован ли пользователь в простой системе
-        const currentUser = window.simpleGetCurrentUser();
+        // Проверяем, авторизован ли пользователь в Firebase
+        const currentUser = window.auth.currentUser;
         if (!currentUser) {
             this.showLogin();
             return;
@@ -1329,6 +1449,14 @@ class NavigationManager {
     }
 
     showGame() {
+        // Проверяем авторизацию перед запуском игры
+        const currentUser = window.auth.currentUser;
+        if (!currentUser) {
+            this.showError('Для игры необходимо войти в систему');
+            this.showLogin();
+            return;
+        }
+        
         this.showScreen('game-screen');
         if (window.game) {
             window.game.startNewGame();
@@ -1348,33 +1476,64 @@ class NavigationManager {
         }
         
         // Проверяем, новый ли это рекорд
-        const currentUser = window.simpleGetCurrentUser();
+        const currentUser = window.auth.currentUser;
         if (currentUser) {
             this.checkNewRecord(score);
         }
     }
 
-    // Валидация имени пользователя
+    // Валидация имени пользователя (Telegram username)
     validateUsername(input) {
         const username = input.value;
         const errorElement = document.getElementById('registerUsernameError');
-        const regex = /^[a-zA-Z][a-zA-Z0-9_-]{2,19}$/;
+        // Валидация Telegram username: username (3-32 символа, только латиница, цифры, подчеркивания)
+        const regex = /^[a-zA-Z0-9_]{3,32}$/;
         
         if (username.length === 0) {
             errorElement.textContent = '';
+            errorElement.classList.remove('success');
             input.classList.remove('invalid');
             return false;
         }
         
         if (!regex.test(username)) {
-            errorElement.textContent = 'Имя может содержать только латинские буквы, цифры, _ и -. Длина 3-20 символов.';
+            errorElement.textContent = 'Username должен содержать только латинские буквы, цифры, _. Длина 3-32 символа.';
+            errorElement.classList.remove('success');
             input.classList.add('invalid');
             return false;
         } else {
-            errorElement.textContent = '✓ Имя корректно';
+            errorElement.textContent = '✓ Username корректно';
             errorElement.classList.add('success');
             input.classList.remove('invalid');
             return true;
+        }
+    }
+
+    // Проверка уникальности имени пользователя в реальном времени
+    async checkUsernameAvailability(username) {
+        const errorElement = document.getElementById('registerUsernameError');
+        const input = document.getElementById('registerUsername');
+        
+        if (!username || username.length < 3) {
+            return;
+        }
+        
+        try {
+            const isUnique = await this.checkUsernameUnique(username);
+            if (isUnique) {
+                errorElement.textContent = '✓ Имя доступно';
+                errorElement.classList.add('success');
+                input.classList.remove('invalid');
+            } else {
+                errorElement.textContent = '❌ Имя уже занято';
+                errorElement.classList.remove('success');
+                input.classList.add('invalid');
+            }
+        } catch (error) {
+            console.error('Ошибка проверки доступности имени:', error);
+            errorElement.textContent = '⚠️ Ошибка проверки имени';
+            errorElement.classList.remove('success');
+            input.classList.add('invalid');
         }
     }
 
@@ -1447,6 +1606,7 @@ class NavigationManager {
         const username = document.getElementById('registerUsername').value;
         const password = document.getElementById('registerPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        const invitedBy = document.getElementById('invitedBy').value;
         
         // Валидация
         if (!this.validateUsername(document.getElementById('registerUsername'))) {
@@ -1465,63 +1625,155 @@ class NavigationManager {
         }
         
         try {
-            await this.registerUser(username, password);
+            await this.registerUser(username, password, invitedBy);
             this.showMenu();
         } catch (error) {
             this.showError('Ошибка регистрации: ' + error.message);
         }
     }
 
-    // Регистрация пользователя
-    async registerUser(username, password) {
+    // Проверка уникальности имени пользователя
+    async checkUsernameUnique(username) {
         try {
-            console.log('Попытка регистрации пользователя:', username);
+            if (!window.db) {
+                throw new Error('Firestore не инициализирован');
+            }
             
-            // Проверяем, что пользователь не существует
-            const existingUser = localStorage.getItem('simple_user_' + username);
-            if (existingUser) {
+            const existingUsers = await window.db.collection('users').where('username', '==', username).get();
+            return existingUsers.empty;
+        } catch (error) {
+            console.error('Ошибка проверки уникальности username:', error);
+            return false; // В случае ошибки считаем, что имя занято
+        }
+    }
+
+    // Регистрация пользователя
+    async registerUser(username, password, invitedBy = null) {
+        try {
+            
+            // Проверяем, что Firebase инициализирован
+            if (!window.auth) {
+                throw new Error('Firebase Auth не инициализирован');
+            }
+            
+            // Проверяем уникальность имени пользователя
+            const isUsernameUnique = await this.checkUsernameUnique(username);
+            if (!isUsernameUnique) {
                 throw new Error('Пользователь с таким именем уже существует');
             }
             
-            // Создаем пользователя через простую систему
-            const result = window.simpleCreateUser(username, password);
-            console.log('Пользователь зарегистрирован:', result);
+            // Используем Firebase Auth
+            const email = `${username}@bmk.local`;
+            
+            const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
+            
+            // Сохраняем данные пользователя в Firestore
+               try {
+                   // Создаем документ пользователя в коллекции users
+                   await window.db.collection('users').doc(userCredential.user.uid).set({
+                       username: username,
+                       email: email,
+                       createdAt: new Date().toISOString(),
+                       lastLogin: new Date().toISOString(),
+                       invitedBy: invitedBy || null,
+                       invitedFriends: [],
+                       invitedCount: 0
+                   });
+                   console.log('Данные пользователя сохранены в Firestore');
+                   
+                   // Если пользователь был приглашен, обновляем счетчик у пригласившего
+                   if (invitedBy) {
+                       try {
+                           const usersSnapshot = await window.db.collection('users').where('username', '==', invitedBy).get();
+                           if (!usersSnapshot.empty) {
+                               const referrerDoc = usersSnapshot.docs[0];
+                               const referrerData = referrerDoc.data();
+                               const newInvitedFriends = [...(referrerData.invitedFriends || []), userCredential.user.uid];
+                               
+                               await window.db.collection('users').doc(referrerDoc.id).update({
+                                   invitedFriends: newInvitedFriends,
+                                   invitedCount: newInvitedFriends.length
+                               });
+                               console.log('Счетчик приглашенных обновлен для:', invitedBy);
+                           }
+                       } catch (error) {
+                           console.error('Ошибка обновления счетчика приглашенных:', error);
+                       }
+                   }
+                   
+                   // Создаем начальную запись в leaderboard
+                   await window.db.collection('leaderboard').doc(userCredential.user.uid).set({
+                       username: username,
+                       score: 0,
+                       createdAt: new Date().toISOString()
+                   });
+                   console.log('Начальная запись в leaderboard создана');
+               } catch (error) {
+                   console.error('Ошибка сохранения данных пользователя:', error);
+               }
             
             // Обновляем UI после успешной регистрации
             if (typeof updateUIForLoggedInUser === 'function') {
-                updateUIForLoggedInUser({ username: username });
+                updateUIForLoggedInUser({ username: username, uid: userCredential.user.uid });
                 console.log('UI обновлен для нового пользователя:', username);
-            } else {
-                console.log('Функция updateUIForLoggedInUser не найдена');
             }
             
-            return { username: username };
+            return { username: username, uid: userCredential.user.uid };
         } catch (error) {
-            console.error('Ошибка регистрации:', error);
-            throw error;
+            console.error('Ошибка регистрации в Firebase:', error);
+            console.error('Код ошибки:', error.code);
+            console.error('Сообщение ошибки:', error.message);
+            
+            // Обрабатываем разные типы ошибок
+            if (error.message.includes('уже существует')) {
+                throw new Error('Пользователь с таким именем уже существует');
+            } else if (error.code === 'auth/email-already-in-use') {
+                throw new Error('Пользователь с таким именем уже существует');
+            } else if (error.code === 'auth/weak-password') {
+                throw new Error('Пароль слишком слабый');
+            } else if (error.code === 'auth/invalid-email') {
+                throw new Error('Некорректное имя пользователя');
+            } else {
+                throw error;
+            }
         }
     }
 
     // Вход пользователя
     async loginUser(username, password) {
         try {
-            console.log('Попытка входа пользователя:', username);
             
-            // Используем простую систему входа
-            const result = window.simpleLogin(username, password);
-            console.log('Вход успешен:', result);
+            // Проверяем, что Firebase инициализирован
+            if (!window.auth) {
+                throw new Error('Firebase Auth не инициализирован');
+            }
+            
+            // Используем Firebase Auth
+            const email = `${username}@bmk.local`;
+            
+            const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
+            
+            // Обновляем lastLogin в Firestore
+            try {
+                await window.db.collection('users').doc(userCredential.user.uid).set({
+                    lastLogin: new Date().toISOString()
+                }, { merge: true });
+                console.log('LastLogin обновлен в Firestore');
+        } catch (error) {
+                console.error('Ошибка обновления lastLogin:', error);
+            }
             
             // Обновляем UI после успешного входа
             if (typeof updateUIForLoggedInUser === 'function') {
-                updateUIForLoggedInUser({ username: username });
+                updateUIForLoggedInUser({ username: username, uid: userCredential.user.uid });
                 console.log('UI обновлен для пользователя:', username);
-            } else {
-                console.log('Функция updateUIForLoggedInUser не найдена');
             }
             
-            return { username: username };
+            return { username: username, uid: userCredential.user.uid };
         } catch (error) {
-            console.error('Ошибка входа:', error);
+            console.error('Ошибка входа в Firebase:', error);
+            console.error('Код ошибки:', error.code);
+            console.error('Сообщение ошибки:', error.message);
             throw error;
         }
     }
@@ -1529,8 +1781,8 @@ class NavigationManager {
     // Выход пользователя
     async logout() {
         try {
-            // Используем простую систему выхода
-            window.simpleLogout();
+            // Используем Firebase Auth
+            await window.auth.signOut();
             this.showMenu();
         } catch (error) {
             this.showError('Ошибка при выходе из системы');
@@ -1539,44 +1791,128 @@ class NavigationManager {
 
     // Загрузка профиля игрока
     async loadPlayerProfile() {
-        const currentUser = window.simpleGetCurrentUser();
+        const currentUser = window.auth.currentUser;
         if (!currentUser) return;
         
         try {
-            // Получаем данные пользователя из простой системы
-            const userData = JSON.parse(localStorage.getItem('simple_user_' + currentUser.username) || '{}');
+            const username = currentUser.email.split('@')[0]; // Извлекаем имя из email
+            
+            // Получаем данные пользователя из Firestore
+            const userDoc = await window.db.collection('users').doc(currentUser.uid).get();
+            const userData = userDoc.exists ? userDoc.data() : {};
             
             // Получаем рейтинг для статистики
-            const leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
-            const userEntry = leaderboard.find(entry => entry.username === currentUser.username);
-            
-            // Обновляем информацию о игроке
+            const leaderboardDoc = await window.db.collection('leaderboard').doc(currentUser.uid).get();
+            const userEntry = leaderboardDoc.exists ? leaderboardDoc.data() : null;
+                
+                // Обновляем информацию о игроке
             const playerNameElement = document.getElementById('playerName');
             if (playerNameElement) {
-                playerNameElement.textContent = currentUser.username;
+                playerNameElement.textContent = username;
             }
             
             const playerJoinDateElement = document.getElementById('playerJoinDate');
             if (playerJoinDateElement && userData.createdAt) {
                 playerJoinDateElement.textContent = `Игрок с ${new Date(userData.createdAt).toLocaleDateString()}`;
+            } else if (playerJoinDateElement) {
+                playerJoinDateElement.textContent = `Игрок с ${new Date(currentUser.metadata.creationTime).toLocaleDateString()}`;
             }
-            
-            // Обновляем статистику
+                
+                // Обновляем статистику
             const bestScore = userEntry ? userEntry.score : 0;
-            const rank = userEntry ? leaderboard.sort((a, b) => b.score - a.score).findIndex(entry => entry.username === currentUser.username) + 1 : '-';
             
-            const totalGamesElement = document.querySelector('[data-stat="totalGames"]');
-            if (totalGamesElement) totalGamesElement.textContent = userEntry ? '1' : '0';
+            // Получаем ранг из рейтинга
+            const leaderboardSnapshot = await window.db.collection('leaderboard').orderBy('score', 'desc').get();
+            let rank = '-';
+            let rankIndex = 1;
+            leaderboardSnapshot.forEach(doc => {
+                if (doc.id === currentUser.uid) {
+                    rank = `#${rankIndex}`;
+                }
+                rankIndex++;
+            });
+            
             
             const bestScoreElement = document.querySelector('[data-stat="bestScore"]');
             if (bestScoreElement) bestScoreElement.textContent = bestScore.toLocaleString();
             
             const currentRankElement = document.querySelector('[data-stat="currentRank"]');
-            if (currentRankElement) currentRankElement.textContent = rank !== '-' ? `#${rank}` : '-';
+            if (currentRankElement) currentRankElement.textContent = rank;
             
+            const invitedFriendsElement = document.querySelector('[data-stat="invitedFriends"]');
+            if (invitedFriendsElement) {
+                const invitedCount = userData.invitedCount || 0;
+                invitedFriendsElement.textContent = invitedCount;
+                
+                // Обновляем цвет в зависимости от количества приглашенных
+                const requirementElement = document.querySelector('.requirement-text');
+                if (requirementElement) {
+                    if (invitedCount >= 3) {
+                        requirementElement.textContent = '✅ Участвуешь в розыгрыше!';
+                        requirementElement.style.color = '#4CAF50';
+                    } else {
+                        requirementElement.innerHTML = `Нужно: ${3 - invitedCount} друзей до 14 лет + подписка на <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a> еще`;
+                        requirementElement.style.color = '#FFD700';
+                    }
+                }
+            }
+            
+            // Загружаем список приглашенных друзей
+            await this.loadInvitedFriendsList(userData.invitedFriends || []);
             
         } catch (error) {
-            console.error('Ошибка загрузки профиля:', error);
+            console.error('Ошибка загрузки профиля из Firestore:', error);
+        }
+    }
+
+    // Загрузка списка приглашенных друзей
+    async loadInvitedFriendsList(invitedFriendsIds) {
+        try {
+            const friendsListElement = document.getElementById('invitedFriendsList');
+            if (!friendsListElement) return;
+
+            if (!invitedFriendsIds || invitedFriendsIds.length === 0) {
+                friendsListElement.innerHTML = '<p class="no-friends">Пока никого не пригласили</p>';
+                return;
+            }
+
+            // Получаем данные всех приглашенных пользователей
+            const friendsData = [];
+            for (const friendId of invitedFriendsIds) {
+                try {
+                    if (!friendId || friendId.trim() === '') continue;
+                    
+                    const friendDoc = await window.db.collection('users').doc(friendId).get();
+                    if (friendDoc.exists) {
+                        const friendData = friendDoc.data();
+                        friendsData.push({
+                            username: friendData.username,
+                            createdAt: friendData.createdAt
+                        });
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки данных друга:', friendId, error);
+                }
+            }
+
+            // Отображаем список друзей
+            if (friendsData.length === 0) {
+                friendsListElement.innerHTML = '<p class="no-friends">Пока никого не пригласили</p>';
+            } else {
+                friendsListElement.innerHTML = friendsData.map(friend => `
+                    <div class="friend-item">
+                        <span class="friend-username">${friend.username}</span>
+                        <span class="friend-date">${new Date(friend.createdAt).toLocaleDateString()}</span>
+                    </div>
+                `).join('');
+            }
+
+        } catch (error) {
+            console.error('Ошибка загрузки списка приглашенных друзей:', error);
+            const friendsListElement = document.getElementById('invitedFriendsList');
+            if (friendsListElement) {
+                friendsListElement.innerHTML = '<p class="no-friends">Ошибка загрузки списка</p>';
+            }
         }
     }
 
@@ -1586,23 +1922,21 @@ class NavigationManager {
         leaderboardList.innerHTML = '<div class="loading">Загрузка рейтинга...</div>';
         
         try {
-            // Загружаем рейтинг из простой системы
-            const leaderboard = JSON.parse(localStorage.getItem('simple_leaderboard') || '[]');
+            // Загружаем рейтинг из Firestore
+            const leaderboardSnapshot = await window.db.collection('leaderboard').orderBy('score', 'desc').get();
             
-            if (leaderboard.length === 0) {
+            if (leaderboardSnapshot.empty) {
                 leaderboardList.innerHTML = '<div class="loading">Рейтинг пуст</div>';
                 return;
             }
             
-            // Сортируем по счету (по убыванию)
-            leaderboard.sort((a, b) => b.score - a.score);
-            
             let html = '';
             let rank = 1;
-            const currentUser = window.simpleGetCurrentUser();
+            const currentUser = window.auth.currentUser;
             
-            leaderboard.forEach(entry => {
-                const isCurrentPlayer = currentUser && entry.username === currentUser.username;
+            leaderboardSnapshot.forEach(doc => {
+                const entry = doc.data();
+                const isCurrentPlayer = currentUser && entry.uid === currentUser.uid;
                 
                 html += `
                     <div class="leaderboard-item ${isCurrentPlayer ? 'current-player' : ''}">
@@ -1615,9 +1949,9 @@ class NavigationManager {
             });
             
             leaderboardList.innerHTML = html;
-            console.log('Рейтинг загружен:', leaderboard.length, 'записей');
+            console.log('Рейтинг загружен из Firestore:', leaderboardSnapshot.size, 'записей');
         } catch (error) {
-            console.error('Ошибка загрузки рейтинга:', error);
+            console.error('Ошибка загрузки рейтинга из Firestore:', error);
             leaderboardList.innerHTML = '<div class="loading">Ошибка загрузки рейтинга</div>';
         }
     }

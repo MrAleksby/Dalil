@@ -62,6 +62,137 @@ body {
     50% { background-position: 100% 50%; }
 }
 
+/* Баннер розыгрыша */
+.prize-banner {
+    background: linear-gradient(135deg, #FF6B6B, #FFD700, #FF6B6B);
+    background-size: 200% 200%;
+    animation: prizeGradient 3s ease-in-out infinite;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.prize-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: prizeShine 2s linear infinite;
+}
+
+@keyframes prizeGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes prizeShine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.prize-icon {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 10px;
+    animation: prizeBounce 2s ease-in-out infinite;
+}
+
+@keyframes prizeBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.prize-text {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.prize-title {
+    display: block;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+}
+
+.prize-amount {
+    display: block;
+    font-size: 2em;
+    font-weight: 900;
+    color: #FFD700;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+    letter-spacing: 3px;
+    animation: prizeGlow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes prizeGlow {
+    0% { text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.5); }
+    100% { text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 215, 0, 0.8); }
+}
+
+.prize-subtitle {
+    display: block;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    font-style: italic;
+}
+
+.prize-deadline {
+    display: block;
+    font-size: 0.8em;
+    color: #FF6B6B;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    margin-top: 5px;
+    animation: deadlineBlink 2s ease-in-out infinite;
+}
+
+@keyframes deadlineBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.age-limit {
+    display: block;
+    font-size: 0.75em;
+    color: #FFA500;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    margin-top: 3px;
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    border-radius: 5px;
+    padding: 2px 5px;
+    background: rgba(255, 165, 0, 0.1);
+}
+
+.telegram-link {
+    color: #00a8ff;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(0, 168, 255, 0.1);
+    transition: all 0.2s ease;
+    display: inline-block;
+    text-shadow: none;
+}
+
+.telegram-link:hover {
+    background: rgba(0, 168, 255, 0.2);
+    color: #0088cc;
+    text-decoration: none;
+    transform: scale(1.05);
+}
+
 #game-container {
     position: relative;
 }
@@ -118,6 +249,70 @@ body {
 .menu-btn.secondary:hover {
     background: linear-gradient(45deg, #1976D2, #2196F3);
     box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+/* Заблокированные кнопки */
+.menu-btn.disabled {
+    background: linear-gradient(45deg, #666, #888);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.menu-btn.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Кнопка Telegram */
+.telegram-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 15px 30px;
+    margin: 10px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    text-decoration: none;
+    background: linear-gradient(45deg, #0088cc, #00a8ff);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3);
+}
+
+.telegram-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 136, 204, 0.4);
+    background: linear-gradient(45deg, #0077b3, #0099e6);
+    color: white;
+    text-decoration: none;
+}
+
+.telegram-btn:active {
+    transform: translateY(0);
+}
+
+.telegram-icon {
+    font-size: 1.2em;
+}
+
+/* Сообщение о необходимости авторизации */
+.auth-required-message {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.5);
+    border-radius: 10px;
+    color: #ffc107;
+    font-size: 0.9em;
+}
+
+.auth-required-message.hidden {
+    display: none;
 }
 
 .auth-btn {
@@ -205,6 +400,281 @@ body {
     color: rgba(255, 255, 255, 0.7);
 }
 
+.auth-select {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.auth-select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.auth-select option {
+    background: #2a2a2a;
+    color: white;
+}
+
+/* Простой выпадающий список */
+#invitedBy {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#invitedBy:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+#invitedBy option {
+    background: #2a2a2a;
+    color: white;
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#invitedBy option:hover {
+    background: rgba(76, 175, 80, 0.4);
+    color: white;
+    transform: translateX(2px);
+}
+
+#invitedBy option:checked {
+    background: #4CAF50;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+#invitedBy option[disabled] {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4CAF50;
+    font-style: italic;
+    text-align: center;
+    border-top: 1px solid rgba(76, 175, 80, 0.3);
+    margin-top: 5px;
+    padding: 5px;
+}
+
+#invitedBy option[disabled]:hover {
+    background: rgba(76, 175, 80, 0.15);
+    transform: none;
+}
+
+/* Скроллбар для выпадающего списка */
+#invitedBy::-webkit-scrollbar {
+    width: 8px;
+}
+
+#invitedBy::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+#invitedBy::-webkit-scrollbar-thumb {
+    background: rgba(76, 175, 80, 0.5);
+    border-radius: 4px;
+}
+
+#invitedBy::-webkit-scrollbar-thumb:hover {
+    background: rgba(76, 175, 80, 0.7);
+}
+
+/* Современный select */
+.auth-select[size] {
+    height: auto;
+    max-height: 150px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 1rem;
+}
+
+.auth-select[size] option {
+    padding: 10px 12px;
+    margin: 2px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.auth-select[size] option:hover {
+    background: rgba(76, 175, 80, 0.4);
+    color: white;
+    transform: translateX(2px);
+}
+
+.auth-select[size] option:checked {
+    background: #4CAF50;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+/* Стили для информационных сообщений */
+.auth-select[size] option[disabled] {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4CAF50;
+    font-style: italic;
+    text-align: center;
+    border-top: 1px solid rgba(76, 175, 80, 0.3);
+    margin-top: 8px;
+    padding-top: 8px;
+    font-size: 0.85rem;
+    cursor: default;
+}
+
+.auth-select[size] option[disabled]:hover {
+    background: rgba(76, 175, 80, 0.15);
+    transform: none;
+}
+
+/* Стиль для "не найдено" */
+.auth-select[size] option[disabled][style*="color: #ff4444"] {
+    background: rgba(255, 68, 68, 0.15);
+    color: #ff4444;
+    border-top: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+/* Стили для invitedBy dropdown */
+#invitedBy {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+#invitedBy:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+#invitedBy option {
+    background: #2a2a2a;
+    color: white;
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#invitedBy option:hover {
+    background: rgba(76, 175, 80, 0.4);
+    color: white;
+    transform: translateX(2px);
+}
+
+#invitedBy option:checked {
+    background: #4CAF50;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+#invitedBy option[disabled] {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4CAF50;
+    font-style: italic;
+    text-align: center;
+    border-top: 1px solid rgba(76, 175, 80, 0.3);
+    margin-top: 5px;
+    padding: 5px;
+}
+
+#invitedBy option[disabled]:hover {
+    background: rgba(76, 175, 80, 0.15);
+    transform: none;
+}
+
+#invitedBy option[disabled][style*="color: #ff4444"] {
+    background: rgba(255, 68, 68, 0.15);
+    color: #ff4444;
+    border-top: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+/* Список приглашенных друзей */
+.invited-friends-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.invited-friends-section h4 {
+    color: #4CAF50;
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.friends-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.friend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #4CAF50;
+}
+
+.friend-username {
+    color: white;
+    font-weight: 500;
+}
+
+.friend-date {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+}
+
+.no-friends {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    margin: 20px 0;
+}
+
 .validation-message {
     color: #ff4444;
     font-size: 0.8rem;
@@ -252,6 +722,122 @@ body {
     font-weight: bold;
     color: #4CAF50;
     text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.referral-requirement {
+    margin-top: 5px;
+    font-size: 0.8em;
+}
+
+.requirement-text {
+    color: #FFD700;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Информация о призе в рейтинге */
+.prize-info {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border-radius: 10px;
+    padding: 10px 15px;
+    margin: 15px 0;
+    text-align: center;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+
+.prize-trophy {
+    font-size: 1.2em;
+    margin-right: 8px;
+}
+
+.prize-text-small {
+    font-weight: bold;
+    color: #8B4513;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    font-size: 0.9em;
+}
+
+.prize-requirement {
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #FF6B6B;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Правила определения победителя */
+.winner-rules {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.winner-rules h4 {
+    color: #FFD700;
+    margin: 0 0 10px 0;
+    font-size: 1em;
+    text-align: center;
+}
+
+.rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.rules-list li {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.85em;
+    margin: 5px 0;
+    padding-left: 15px;
+    position: relative;
+}
+
+.rules-list li::before {
+    content: "•";
+    color: #4CAF50;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+.username-requirement {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(255, 107, 107, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.username-requirement h5 {
+    color: #FF6B6B;
+    margin: 0 0 8px 0;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.username-rules {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.username-rules li {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.8em;
+    margin: 4px 0;
+    padding-left: 15px;
+    position: relative;
+}
+
+.username-rules li::before {
+    content: "⚠️";
+    position: absolute;
+    left: 0;
+    font-size: 0.7em;
 }
 
 /* Рейтинг */
@@ -380,6 +966,82 @@ body {
         font-size: 3em;
     }
     
+    .prize-banner {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .prize-icon {
+        font-size: 2em;
+    }
+    
+    .prize-title {
+        font-size: 1em;
+        letter-spacing: 1px;
+    }
+    
+    .prize-amount {
+        font-size: 1.5em;
+        letter-spacing: 2px;
+    }
+    
+    .prize-subtitle {
+        font-size: 0.8em;
+    }
+    
+    .prize-deadline {
+        font-size: 0.7em;
+    }
+    
+    .age-limit {
+        font-size: 0.65em;
+        padding: 1px 3px;
+    }
+    
+    .telegram-link {
+        font-size: 0.65em;
+        padding: 1px 3px;
+    }
+    
+    .prize-info {
+        padding: 8px 12px;
+        margin: 10px 0;
+    }
+    
+    .prize-text-small {
+        font-size: 0.8em;
+    }
+    
+    .prize-requirement {
+        font-size: 0.7em;
+    }
+    
+    .winner-rules {
+        padding: 10px;
+        margin: 10px 0;
+    }
+    
+    .winner-rules h4 {
+        font-size: 0.9em;
+    }
+    
+    .rules-list li {
+        font-size: 0.8em;
+    }
+    
+    .username-requirement {
+        padding: 8px;
+        margin-top: 10px;
+    }
+    
+    .username-requirement h5 {
+        font-size: 0.8em;
+    }
+    
+    .username-rules li {
+        font-size: 0.75em;
+    }
+    
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 15px;
@@ -387,6 +1049,11 @@ body {
     
     .stat-value {
         font-size: 2em;
+    }
+    
+    .telegram-btn {
+        font-size: 1rem;
+        padding: 12px 24px;
     }
 }
 

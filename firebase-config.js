@@ -1,12 +1,13 @@
 // Firebase конфигурация
 // ВАЖНО: Замените эти значения на ваши реальные из Firebase Console
 const firebaseConfig = {
-    apiKey: "your-api-key-here",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "your-app-id"
+    apiKey: "AIzaSyDj5FpJ0nPPZp54A4cEp6UZs7FpYrR9tbY",
+    authDomain: "bmk-jump.firebaseapp.com",
+    projectId: "bmk-jump",
+    storageBucket: "bmk-jump.firebasestorage.app",
+    messagingSenderId: "460698281484",
+    appId: "1:460698281484:web:d059dd22266ad1bff87029",
+    measurementId: "G-977C50CZKZ"
 };
 
 // Проверяем, доступен ли Firebase SDK
@@ -19,6 +20,7 @@ if (typeof firebase !== 'undefined') {
     // Инициализация сервисов
     auth = firebase.auth();
     db = firebase.firestore();
+    console.log('Firebase SDK успешно инициализирован');
 } else {
     // Используем mock Firebase (будет инициализирован в mock-firebase.js)
     console.log('Firebase SDK не найден, используется mock Firebase');
@@ -55,7 +57,7 @@ if (auth && auth.onAuthStateChanged) {
         } else {
             updateUIForLoggedOutUser();
         }
-    }, 200); // Увеличиваем задержку для полной инициализации
+    }, 200);
 }
 
 // Обновление UI для авторизованного пользователя
@@ -67,9 +69,23 @@ function updateUIForLoggedInUser(user) {
     // Показываем кнопку выхода
     document.getElementById('logoutBtn').classList.remove('hidden');
     
+    // Активируем кнопки игры и профиля
+    const startGameBtn = document.getElementById('startGameBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    
+    startGameBtn.classList.remove('disabled');
+    startGameBtn.disabled = false;
+    startGameBtn.textContent = 'Начать игру';
+    
+    profileBtn.classList.remove('disabled');
+    profileBtn.disabled = false;
+    
     // Показываем кнопки профиля и рейтинга
     document.getElementById('profileBtn').classList.remove('hidden');
     document.getElementById('leaderboardBtn').classList.remove('hidden');
+    
+    // Скрываем сообщение о необходимости авторизации
+    document.getElementById('authRequiredMessage').classList.add('hidden');
     
     // Обновляем статус подключения
     updateConnectionStatus(true);
@@ -84,9 +100,23 @@ function updateUIForLoggedOutUser() {
     // Скрываем кнопку выхода
     document.getElementById('logoutBtn').classList.add('hidden');
     
+    // Блокируем кнопки игры и профиля
+    const startGameBtn = document.getElementById('startGameBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    
+    startGameBtn.classList.add('disabled');
+    startGameBtn.disabled = true;
+    startGameBtn.textContent = 'Войдите для игры';
+    
+    profileBtn.classList.add('disabled');
+    profileBtn.disabled = true;
+    
     // Скрываем кнопки профиля и рейтинга
     document.getElementById('profileBtn').classList.add('hidden');
     document.getElementById('leaderboardBtn').classList.add('hidden');
+    
+    // Показываем сообщение о необходимости авторизации
+    document.getElementById('authRequiredMessage').classList.remove('hidden');
     
     // Обновляем статус подключения
     updateConnectionStatus(false);
