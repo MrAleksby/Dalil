@@ -1588,20 +1588,42 @@ class NavigationManager {
     async handleLogin(e) {
         e.preventDefault();
         
+        // Защита от множественных нажатий
+        const loginBtn = document.querySelector('#loginForm button[type="submit"]');
+        if (loginBtn.disabled) {
+            return; // Уже идет процесс входа
+        }
+        
         const username = document.getElementById('loginUsername').value;
         const password = document.getElementById('loginPassword').value;
+        
+        // Отключаем кнопку и показываем индикатор загрузки
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Вход...';
+        loginBtn.style.opacity = '0.6';
         
         try {
             await this.loginUser(username, password);
             this.showMenu();
         } catch (error) {
             this.showError('Ошибка входа: ' + error.message);
+        } finally {
+            // Восстанавливаем кнопку
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Войти';
+            loginBtn.style.opacity = '1';
         }
     }
 
     // Обработка регистрации
     async handleRegister(e) {
         e.preventDefault();
+        
+        // Защита от множественных нажатий
+        const registerBtn = document.querySelector('#registerForm button[type="submit"]');
+        if (registerBtn.disabled) {
+            return; // Уже идет процесс регистрации
+        }
         
         const username = document.getElementById('registerUsername').value;
         const password = document.getElementById('registerPassword').value;
@@ -1624,11 +1646,21 @@ class NavigationManager {
             return;
         }
         
+        // Отключаем кнопку и показываем индикатор загрузки
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Регистрация...';
+        registerBtn.style.opacity = '0.6';
+        
         try {
             await this.registerUser(username, password, invitedBy);
             this.showMenu();
         } catch (error) {
             this.showError('Ошибка регистрации: ' + error.message);
+        } finally {
+            // Восстанавливаем кнопку
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'Зарегистрироваться';
+            registerBtn.style.opacity = '1';
         }
     }
 
