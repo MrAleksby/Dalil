@@ -56,7 +56,6 @@ class MockFirebase {
             createdAt: new Date(),
             lastLogin: new Date(),
             stats: {
-                totalGames: 0,
                 bestScore: 0,
                 totalScore: 0,
                 averageScore: 0,

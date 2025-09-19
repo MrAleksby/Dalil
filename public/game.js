@@ -259,13 +259,6 @@ class Game {
             right: false
         };
         
-        // Логотип убран по запросу пользователя
-        // this.logo = {
-        //     text: 'DALIL',
-        //     x: 0,
-        //     y: 0,
-        //     alpha: 0.2  // Прозрачность логотипа
-        // };
         
         // Сбрасываем параметры скримера
         this.resetJumpscare();
@@ -683,61 +676,73 @@ class Game {
         
         this.ctx.translate(x + this.enemy.width/2, y + this.enemy.height/2);
 
-        // Размеры частей тела
+        // Размеры Front Man (точные пропорции)
         const headRadius = this.enemy.width/2;
-        const legWidth = headRadius/2;
-        const legHeight = headRadius;
-        const bootHeight = headRadius/2;
-        const hornLength = headRadius/2;
+        const bodyWidth = headRadius * 1.4;
+        const bodyHeight = headRadius * 2.0;
+        const legWidth = headRadius/2.5;
+        const legHeight = headRadius * 1.4;
+        const bootHeight = headRadius/4;
 
-        // Рисуем тело (голову) - красного цвета
+        // Рисуем голову (круглая, как в примере)
+        this.ctx.fillStyle = '#000000'; // Черный капюшон
         this.ctx.beginPath();
-        this.ctx.fillStyle = '#FF0000';
-        this.ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
+        this.ctx.arc(0, -headRadius/2, headRadius, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Рисуем рожки - темно-красные
+        // Рисуем белый круг на маске
+        this.ctx.fillStyle = '#FFFFFF';
         this.ctx.beginPath();
-        this.ctx.fillStyle = '#8B0000';
-        // Левый рожок
-        this.ctx.moveTo(-headRadius/2, -headRadius/2);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius+hornLength);
+        this.ctx.arc(0, -headRadius/2, headRadius/3, 0, Math.PI * 2);
         this.ctx.fill();
-        // Правый рожок
-        this.ctx.beginPath();
-        this.ctx.moveTo(headRadius/2, -headRadius/2);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius+hornLength);
-        this.ctx.fill();
-
-        // Рисуем глаза - желтые
-        this.ctx.fillStyle = '#FFD700';
-        this.ctx.beginPath();
-        this.ctx.arc(-headRadius/3, -headRadius/4, headRadius/4, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/3, -headRadius/4, headRadius/4, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        // Рисуем злую улыбку
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = '#FFD700';
-        this.ctx.lineWidth = 2;
-        this.ctx.arc(0, headRadius/4, headRadius/3, 0, Math.PI, true);  // Перевернутая улыбка
+        
+        // Черная обводка белого круга
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 3;
         this.ctx.stroke();
 
-        // Рисуем ноги - черные
-        this.ctx.fillStyle = 'black';
-        // Левая нога
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius, legWidth, legHeight);
-        // Правая нога
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius, legWidth, legHeight);
+        // Рисуем красный комбинезон
+        this.ctx.fillStyle = '#FF0000'; // Ярко-красный
+        this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, bodyHeight);
+        
+        // Рисуем черную вертикальную линию (молния)
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/20, -headRadius/2, headRadius/10, bodyHeight);
 
-        // Рисуем ботинки - темно-красные
-        this.ctx.fillStyle = '#8B0000';
+        // Рисуем черные карманы на груди
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/3, -headRadius/4, headRadius/4, headRadius/6);
+        this.ctx.fillRect(headRadius/6, -headRadius/4, headRadius/4, headRadius/6);
+
+        // Рисуем черный пояс
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2, headRadius/3, bodyWidth, headRadius/8);
+
+        // Рисуем руки (красные с черными манжетами)
+        this.ctx.fillStyle = '#FF0000';
+        // Левая рука
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, -headRadius/8, headRadius/5, headRadius * 1.2);
+        // Правая рука
+        this.ctx.fillRect(bodyWidth/2, -headRadius/8, headRadius/5, headRadius * 1.2);
+        
+        // Черные манжеты на руках
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, headRadius/2, headRadius/5, headRadius/6);
+        this.ctx.fillRect(bodyWidth/2, headRadius/2, headRadius/5, headRadius/6);
+
+        // Рисуем ноги (красные)
+        this.ctx.fillStyle = '#FF0000';
+        // Левая нога
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+        // Правая нога
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+
+        // Рисуем черные ботинки
+        this.ctx.fillStyle = '#000000';
         // Левый ботинок
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius+legHeight, legWidth, bootHeight);
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
         // Правый ботинок
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius+legHeight, legWidth, bootHeight);
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
 
         this.ctx.restore();
     }
@@ -752,55 +757,73 @@ class Game {
         this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
         this.ctx.scale(this.jumpscare.scale, this.jumpscare.scale);
         
-        // Размеры в 2 раза больше обычного
+        // Размеры Front Man (в 2 раза больше обычного)
         const headRadius = this.player.width;
-        const legWidth = headRadius/2;
-        const legHeight = headRadius;
-        const hornLength = headRadius/2;
-        
-        // Рисуем злого Кенито
-        // Тело (голова) - ярко-красного цвета
+        const bodyWidth = headRadius * 1.4;
+        const bodyHeight = headRadius * 2.0;
+        const legWidth = headRadius/2.5;
+        const legHeight = headRadius * 1.4;
+        const bootHeight = headRadius/4;
+
+        // Рисуем голову (круглая, как в примере)
+        this.ctx.fillStyle = '#000000'; // Черный капюшон
         this.ctx.beginPath();
+        this.ctx.arc(0, -headRadius/2, headRadius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Рисуем белый круг на маске (БОЛЬШОЙ)
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.beginPath();
+        this.ctx.arc(0, -headRadius/2, headRadius/2.5, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Черная обводка белого круга
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 6;
+        this.ctx.stroke();
+
+        // Рисуем красный комбинезон
+        this.ctx.fillStyle = '#FF0000'; // Ярко-красный
+        this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, bodyHeight);
+        
+        // Рисуем черную вертикальную линию (молния)
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/20, -headRadius/2, headRadius/10, bodyHeight);
+
+        // Рисуем черные карманы на груди
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-headRadius/3, -headRadius/4, headRadius/4, headRadius/6);
+        this.ctx.fillRect(headRadius/6, -headRadius/4, headRadius/4, headRadius/6);
+
+        // Рисуем черный пояс
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2, headRadius/3, bodyWidth, headRadius/8);
+
+        // Рисуем руки (красные с черными манжетами)
         this.ctx.fillStyle = '#FF0000';
-        this.ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
-        this.ctx.fill();
+        // Левая рука
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, -headRadius/8, headRadius/5, headRadius * 1.2);
+        // Правая рука
+        this.ctx.fillRect(bodyWidth/2, -headRadius/8, headRadius/5, headRadius * 1.2);
         
-        // Рожки - темно-красные и острые
-        this.ctx.beginPath();
-        this.ctx.fillStyle = '#8B0000';
-        // Левый рожок
-        this.ctx.moveTo(-headRadius/2, -headRadius/2);
-        this.ctx.lineTo(-headRadius-hornLength, -headRadius);
-        this.ctx.lineTo(-headRadius-hornLength/2, -headRadius+hornLength/2);
-        this.ctx.fill();
-        // Правый рожок
-        this.ctx.beginPath();
-        this.ctx.moveTo(headRadius/2, -headRadius/2);
-        this.ctx.lineTo(headRadius+hornLength, -headRadius);
-        this.ctx.lineTo(headRadius+hornLength/2, -headRadius+hornLength/2);
-        this.ctx.fill();
-        
-        // Глаза - яркие желтые с красным ободком
-        this.ctx.fillStyle = '#FFD700';
-        this.ctx.strokeStyle = '#FF0000';
-        this.ctx.lineWidth = 3;
-        this.ctx.beginPath();
-        this.ctx.arc(-headRadius/3, -headRadius/4, headRadius/3, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/3, -headRadius/4, headRadius/3, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.stroke();
-        
-        // Злая улыбка - острые зубы
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = '#FFD700';
-        this.ctx.lineWidth = 3;
-        this.ctx.moveTo(-headRadius/2, headRadius/4);
-        for(let i = 0; i < 5; i++) {
-            const x = -headRadius/2 + (i * headRadius/2);
-            this.ctx.lineTo(x + headRadius/8, headRadius/2);
-            this.ctx.lineTo(x + headRadius/4, headRadius/4);
-        }
-        this.ctx.stroke();
+        // Черные манжеты на руках
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/5, headRadius/2, headRadius/5, headRadius/6);
+        this.ctx.fillRect(bodyWidth/2, headRadius/2, headRadius/5, headRadius/6);
+
+        // Рисуем ноги (красные)
+        this.ctx.fillStyle = '#FF0000';
+        // Левая нога
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+        // Правая нога
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
+
+        // Рисуем черные ботинки
+        this.ctx.fillStyle = '#000000';
+        // Левый ботинок
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
+        // Правый ботинок
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
         
         this.ctx.restore();
     }
@@ -858,17 +881,6 @@ class Game {
             this.drawEvilKenito(this.enemy.x, this.enemy.y);
         }
         
-        // Логотип убран по запросу пользователя
-        // this.ctx.save();
-        // this.ctx.globalAlpha = this.logo.alpha;
-        // this.ctx.fillStyle = '#fff';
-        // this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        // this.ctx.shadowBlur = 10;
-        // this.ctx.font = 'bold 48px Arial';
-        // this.ctx.textAlign = 'center';
-        // this.ctx.fillText(this.logo.text, this.canvas.width / 2, 70);
-        // this.ctx.globalAlpha = 1.0;
-        // this.ctx.restore();
         
         // Рисуем счет с красивым оформлением
         this.ctx.save();
@@ -904,9 +916,7 @@ class Game {
             this.ctx.fillStyle = '#fff';
             this.ctx.font = 'bold 48px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText('DALIL', this.canvas.width/2, this.canvas.height/2 - 60);
-            this.ctx.font = '30px Arial';
-            this.ctx.fillText('Игра окончена!', this.canvas.width/2, this.canvas.height/2);
+            this.ctx.fillText('Игра окончена!', this.canvas.width/2, this.canvas.height/2 - 20);
             this.ctx.font = '20px Arial';
             this.ctx.fillText(`Финальный счет: ${Math.floor(this.score)}`, this.canvas.width/2, this.canvas.height/2 + 40);
         }
@@ -1012,7 +1022,6 @@ class Game {
 
     playBackgroundMusic() {
         if (this.hasUserInteracted && !this.isMusicPlaying) {
-            console.log('Попытка воспроизведения музыки...');
             const playPromise = this.backgroundMusic.play();
             
             if (playPromise !== undefined) {
@@ -1080,8 +1089,6 @@ class Game {
             } catch (error) {
                 console.error('Ошибка сохранения результата:', error);
             }
-        } else {
-            console.log('Пользователь не авторизован, результат не сохраняется');
         }
         
         // Показываем экран окончания игры
@@ -1103,7 +1110,6 @@ class Game {
             // Получаем текущего пользователя из Firebase
             const currentUser = window.auth.currentUser;
             if (!currentUser) {
-                console.log('Пользователь не авторизован, результат не сохраняется');
                 return;
             }
             
@@ -1176,7 +1182,6 @@ class Game {
             if (userDoc.exists) {
                 const userData = userDoc.data();
                 const stats = userData.stats || {
-                    totalGames: 0,
                     bestScore: 0,
                     totalScore: 0,
                     averageScore: 0,
@@ -1186,9 +1191,8 @@ class Game {
                 };
                 
                 // Обновляем статистику
-                stats.totalGames += 1;
                 stats.totalScore += score;
-                stats.averageScore = Math.round(stats.totalScore / stats.totalGames);
+                stats.averageScore = Math.round(stats.totalScore / (stats.gamesPlayedToday || 1));
                 
                 if (score > stats.bestScore) {
                     stats.bestScore = score;
@@ -1253,20 +1257,6 @@ class Game {
         }
     }
 
-    /**
-     * Получение кода страны
-     */
-    getCountryCode() {
-        // Простая реализация - можно улучшить
-        return 'RU';
-    }
-
-    /**
-     * Получение типа устройства
-     */
-    getDeviceType() {
-        return this.isMobile ? 'mobile' : 'desktop';
-    }
 
     /**
      * Показ экрана окончания игры
@@ -1360,7 +1350,14 @@ class NavigationManager {
         document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
 
         // Валидация в реальном времени
-        document.getElementById('registerUsername').addEventListener('input', (e) => this.validateUsername(e.target));
+        document.getElementById('registerUsername').addEventListener('input', (e) => {
+            this.validateUsername(e.target);
+            // Проверяем доступность имени с задержкой
+            clearTimeout(this.usernameCheckTimeout);
+            this.usernameCheckTimeout = setTimeout(() => {
+                this.checkUsernameAvailability(e.target.value);
+            }, 500);
+        });
         document.getElementById('registerPassword').addEventListener('input', (e) => this.validatePassword(e.target));
         document.getElementById('confirmPassword').addEventListener('input', (e) => this.validateConfirmPassword(e.target));
         
@@ -1377,8 +1374,7 @@ class NavigationManager {
     async populateInvitedByDropdown() {
         try {
             const dropdown = document.getElementById('invitedBy');
-            const searchInput = document.getElementById('invitedBySearch');
-            if (!dropdown || !searchInput) return;
+            if (!dropdown) return;
 
             // Очищаем список
             dropdown.innerHTML = '<option value="">Кто тебя пригласил? (необязательно)</option>';
@@ -1397,91 +1393,21 @@ class NavigationManager {
                     }
                 });
 
-                // Сортируем по username
+                // Сортируем по алфавиту
                 allUsers.sort((a, b) => a.username.localeCompare(b.username));
 
-                // Сохраняем всех пользователей для фильтрации
-                this.allUsers = allUsers;
+                console.log('Загружено пользователей:', allUsers.length);
+                console.log('Пользователи (по алфавиту):', allUsers.map(u => u.username));
 
-                // Функция фильтрации и отображения
-                const updateDropdown = (searchTerm = '') => {
-                    dropdown.innerHTML = '<option value="">Кто тебя пригласил? (необязательно)</option>';
-                    
-                    if (!searchTerm) {
-                        // Если поиск пустой, показываем только первые 5 пользователей
-                        const limitedUsers = allUsers.slice(0, 5);
-                        limitedUsers.forEach(user => {
-                            const option = document.createElement('option');
-                            option.value = user.username;
-                            option.textContent = user.username;
-                            dropdown.appendChild(option);
-                        });
-                        
-                        if (allUsers.length > 5) {
-                            const moreOption = document.createElement('option');
-                            moreOption.disabled = true;
-                            moreOption.textContent = `... и еще ${allUsers.length - 5} пользователей`;
-                            moreOption.style.color = '#4CAF50';
-                            moreOption.style.fontStyle = 'italic';
-                            dropdown.appendChild(moreOption);
-                        }
-                    } else {
-                        // Фильтруем по поисковому запросу
-                        const filteredUsers = allUsers.filter(user => 
-                            user.username.toLowerCase().includes(searchTerm.toLowerCase())
-                        );
-
-                        if (filteredUsers.length === 0) {
-                            const noResultsOption = document.createElement('option');
-                            noResultsOption.disabled = true;
-                            noResultsOption.textContent = 'Пользователи не найдены';
-                            noResultsOption.style.color = '#ff4444';
-                            noResultsOption.style.fontStyle = 'italic';
-                            dropdown.appendChild(noResultsOption);
-                        } else {
-                            // Показываем максимум 10 результатов
-                            const limitedResults = filteredUsers.slice(0, 10);
-                            limitedResults.forEach(user => {
-                                const option = document.createElement('option');
-                                option.value = user.username;
-                                option.textContent = user.username;
-                                dropdown.appendChild(option);
-                            });
-                            
-                            if (filteredUsers.length > 10) {
-                                const moreOption = document.createElement('option');
-                                moreOption.disabled = true;
-                                moreOption.textContent = `... и еще ${filteredUsers.length - 10} результатов`;
-                                moreOption.style.color = '#4CAF50';
-                                moreOption.style.fontStyle = 'italic';
-                                dropdown.appendChild(moreOption);
-                            }
-                        }
-                    }
-                };
-
-                // Обработчик поиска
-                searchInput.addEventListener('input', (e) => {
-                    updateDropdown(e.target.value);
+                // Добавляем пользователей в выпадающий список
+                allUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = user.username;
+                    dropdown.appendChild(option);
                 });
 
-                // Обработчик очистки поиска
-                searchInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        searchInput.value = '';
-                        updateDropdown('');
-                    }
-                });
-
-                // Обработчик фокуса - показываем подсказку
-                searchInput.addEventListener('focus', () => {
-                    if (!searchInput.value) {
-                        updateDropdown('');
-                    }
-                });
-
-                // Инициализация
-                updateDropdown('');
+                console.log('Выпадающий список обновлен с', allUsers.length, 'пользователями');
             }
         } catch (error) {
             console.error('Ошибка загрузки списка пользователей:', error);
@@ -1565,12 +1491,14 @@ class NavigationManager {
         
         if (username.length === 0) {
             errorElement.textContent = '';
+            errorElement.classList.remove('success');
             input.classList.remove('invalid');
             return false;
         }
         
         if (!regex.test(username)) {
             errorElement.textContent = 'Username должен содержать только латинские буквы, цифры, _. Длина 3-32 символа.';
+            errorElement.classList.remove('success');
             input.classList.add('invalid');
             return false;
         } else {
@@ -1578,6 +1506,34 @@ class NavigationManager {
             errorElement.classList.add('success');
             input.classList.remove('invalid');
             return true;
+        }
+    }
+
+    // Проверка уникальности имени пользователя в реальном времени
+    async checkUsernameAvailability(username) {
+        const errorElement = document.getElementById('registerUsernameError');
+        const input = document.getElementById('registerUsername');
+        
+        if (!username || username.length < 3) {
+            return;
+        }
+        
+        try {
+            const isUnique = await this.checkUsernameUnique(username);
+            if (isUnique) {
+                errorElement.textContent = '✓ Имя доступно';
+                errorElement.classList.add('success');
+                input.classList.remove('invalid');
+            } else {
+                errorElement.textContent = '❌ Имя уже занято';
+                errorElement.classList.remove('success');
+                input.classList.add('invalid');
+            }
+        } catch (error) {
+            console.error('Ошибка проверки доступности имени:', error);
+            errorElement.textContent = '⚠️ Ошибка проверки имени';
+            errorElement.classList.remove('success');
+            input.classList.add('invalid');
         }
     }
 
@@ -1708,27 +1664,40 @@ class NavigationManager {
         }
     }
 
+    // Проверка уникальности имени пользователя
+    async checkUsernameUnique(username) {
+        try {
+            if (!window.db) {
+                throw new Error('Firestore не инициализирован');
+            }
+            
+            const existingUsers = await window.db.collection('users').where('username', '==', username).get();
+            return existingUsers.empty;
+        } catch (error) {
+            console.error('Ошибка проверки уникальности username:', error);
+            return false; // В случае ошибки считаем, что имя занято
+        }
+    }
+
     // Регистрация пользователя
     async registerUser(username, password, invitedBy = null) {
         try {
-            console.log('Попытка регистрации пользователя через Firebase:', username);
-            console.log('Firebase auth объект:', window.auth);
-            console.log('Firebase db объект:', window.db);
             
             // Проверяем, что Firebase инициализирован
             if (!window.auth) {
                 throw new Error('Firebase Auth не инициализирован');
             }
             
+            // Проверяем уникальность имени пользователя
+            const isUsernameUnique = await this.checkUsernameUnique(username);
+            if (!isUsernameUnique) {
+                throw new Error('Пользователь с таким именем уже существует');
+            }
+            
             // Используем Firebase Auth
             const email = `${username}@bmk.local`;
-            console.log('Email для регистрации:', email);
             
             const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
-            console.log('Пользователь зарегистрирован в Firebase:', userCredential.user.uid);
-            console.log('Пользователь:', userCredential.user);
-            console.log('Email пользователя:', userCredential.user.email);
-            console.log('Email подтвержден:', userCredential.user.emailVerified);
             
             // Сохраняем данные пользователя в Firestore
                try {
@@ -1786,16 +1755,25 @@ class NavigationManager {
             console.error('Ошибка регистрации в Firebase:', error);
             console.error('Код ошибки:', error.code);
             console.error('Сообщение ошибки:', error.message);
-            throw error;
+            
+            // Обрабатываем разные типы ошибок
+            if (error.message.includes('уже существует')) {
+                throw new Error('Пользователь с таким именем уже существует');
+            } else if (error.code === 'auth/email-already-in-use') {
+                throw new Error('Пользователь с таким именем уже существует');
+            } else if (error.code === 'auth/weak-password') {
+                throw new Error('Пароль слишком слабый');
+            } else if (error.code === 'auth/invalid-email') {
+                throw new Error('Некорректное имя пользователя');
+            } else {
+                throw error;
+            }
         }
     }
 
     // Вход пользователя
     async loginUser(username, password) {
         try {
-            console.log('Попытка входа пользователя через Firebase:', username);
-            console.log('Firebase auth объект:', window.auth);
-            console.log('Firebase db объект:', window.db);
             
             // Проверяем, что Firebase инициализирован
             if (!window.auth) {
@@ -1804,15 +1782,8 @@ class NavigationManager {
             
             // Используем Firebase Auth
             const email = `${username}@bmk.local`;
-            console.log('Email для входа:', email);
             
             const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
-            console.log('Вход успешен в Firebase:', userCredential.user.uid);
-            console.log('Пользователь:', userCredential.user);
-            console.log('Email пользователя:', userCredential.user.email);
-            console.log('Email подтвержден:', userCredential.user.emailVerified);
-            console.log('Время создания:', userCredential.user.metadata.creationTime);
-            console.log('Последний вход:', userCredential.user.metadata.lastSignInTime);
             
             // Обновляем lastLogin в Firestore
             try {
@@ -1901,7 +1872,22 @@ class NavigationManager {
             if (currentRankElement) currentRankElement.textContent = rank;
             
             const invitedFriendsElement = document.querySelector('[data-stat="invitedFriends"]');
-            if (invitedFriendsElement) invitedFriendsElement.textContent = userData.invitedCount || 0;
+            if (invitedFriendsElement) {
+                const invitedCount = userData.invitedCount || 0;
+                invitedFriendsElement.textContent = invitedCount;
+                
+                // Обновляем цвет в зависимости от количества приглашенных
+                const requirementElement = document.querySelector('.requirement-text');
+                if (requirementElement) {
+                    if (invitedCount >= 3) {
+                        requirementElement.textContent = '✅ Участвуешь в розыгрыше!';
+                        requirementElement.style.color = '#4CAF50';
+                    } else {
+                        requirementElement.innerHTML = `Нужно: ${3 - invitedCount} друзей до 14 лет + подписка на <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a> еще`;
+                        requirementElement.style.color = '#FFD700';
+                    }
+                }
+            }
             
             // Загружаем список приглашенных друзей
             await this.loadInvitedFriendsList(userData.invitedFriends || []);
@@ -1926,6 +1912,8 @@ class NavigationManager {
             const friendsData = [];
             for (const friendId of invitedFriendsIds) {
                 try {
+                    if (!friendId || friendId.trim() === '') continue;
+                    
                     const friendDoc = await window.db.collection('users').doc(friendId).get();
                     if (friendDoc.exists) {
                         const friendData = friendDoc.data();
