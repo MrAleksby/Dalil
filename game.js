@@ -1424,12 +1424,12 @@ class NavigationManager {
         const toggle = document.getElementById('invitedByToggle');
         const dropdown = document.getElementById('invitedByDropdown');
         const input = document.getElementById('invitedByInput');
+        const container = document.querySelector('.invited-by-container');
         
-        if (!toggle || !dropdown || !input) return;
+        if (!toggle || !dropdown || !input || !container) return;
 
-        // Переключение видимости списка
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
+        // Функция для переключения видимости списка
+        const toggleDropdown = () => {
             const isHidden = dropdown.classList.contains('hidden');
             
             if (isHidden) {
@@ -1438,6 +1438,26 @@ class NavigationManager {
             } else {
                 dropdown.classList.add('hidden');
                 toggle.classList.remove('rotated');
+            }
+        };
+
+        // Переключение при клике на треугольник
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown();
+        });
+
+        // Переключение при клике на поле ввода
+        input.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown();
+        });
+
+        // Переключение при клике на контейнер (если клик не на треугольнике)
+        container.addEventListener('click', (e) => {
+            if (!toggle.contains(e.target)) {
+                e.stopPropagation();
+                toggleDropdown();
             }
         });
 
@@ -1462,7 +1482,7 @@ class NavigationManager {
 
         // Закрытие при клике вне списка
         document.addEventListener('click', (e) => {
-            if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
+            if (!container.contains(e.target)) {
                 dropdown.classList.add('hidden');
                 toggle.classList.remove('rotated');
             }
