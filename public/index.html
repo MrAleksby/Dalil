@@ -102,9 +102,13 @@
                     <div class="validation-message" id="confirmPasswordError"></div>
                 </div>
                 <div class="input-group">
-                    <select id="invitedBy" class="auth-select" size="5">
-                        <option value="">Кто тебя пригласил? (необязательно)</option>
-                    </select>
+                    <div class="invited-by-container">
+                        <input type="text" id="invitedByInput" class="auth-input" placeholder="Кто тебя пригласил? (необязательно)" readonly>
+                        <button type="button" id="invitedByToggle" class="dropdown-toggle">▼</button>
+                        <div id="invitedByDropdown" class="dropdown-list hidden">
+                            <div class="dropdown-item" data-value="">Никто</div>
+                        </div>
+                    </div>
                     <div class="validation-message" id="invitedByError"></div>
                 </div>
                 <button type="submit" class="auth-btn">Зарегистрироваться</button>

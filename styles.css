@@ -563,6 +563,80 @@ body {
     border-top: 1px solid rgba(255, 68, 68, 0.3);
 }
 
+/* Новые стили для выпадающего списка */
+.invited-by-container {
+    position: relative;
+    width: 100%;
+}
+
+.dropdown-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: transform 0.3s ease, color 0.3s ease;
+    z-index: 10;
+}
+
+.dropdown-toggle:hover {
+    color: white;
+}
+
+.dropdown-toggle.rotated {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(42, 42, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.dropdown-list.hidden {
+    display: none;
+}
+
+.dropdown-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.dropdown-item:hover {
+    background: rgba(76, 175, 80, 0.3);
+    color: white;
+    transform: translateX(2px);
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item.selected {
+    background: rgba(76, 175, 80, 0.5);
+    color: white;
+    font-weight: bold;
+}
+
 /* Стили для invitedBy dropdown */
 #invitedBy {
     width: 100%;

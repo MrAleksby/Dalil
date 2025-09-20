@@ -1373,11 +1373,12 @@ class NavigationManager {
     // Заполнение выпадающего списка пользователями
     async populateInvitedByDropdown() {
         try {
-            const dropdown = document.getElementById('invitedBy');
-            if (!dropdown) return;
+            const dropdown = document.getElementById('invitedByDropdown');
+            const input = document.getElementById('invitedByInput');
+            if (!dropdown || !input) return;
 
             // Очищаем список
-            dropdown.innerHTML = '<option value="">Кто тебя пригласил? (необязательно)</option>';
+            dropdown.innerHTML = '<div class="dropdown-item" data-value="">Никто</div>';
 
             if (window.db) {
                 const usersSnapshot = await window.db.collection('users').get();
@@ -1401,17 +1402,71 @@ class NavigationManager {
 
                 // Добавляем пользователей в выпадающий список
                 allUsers.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.username;
-                    option.textContent = user.username;
-                    dropdown.appendChild(option);
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    item.setAttribute('data-value', user.username);
+                    item.textContent = user.username;
+                    dropdown.appendChild(item);
                 });
+
+                // Добавляем обработчики событий
+                this.setupDropdownHandlers();
 
                 console.log('Выпадающий список обновлен с', allUsers.length, 'пользователями');
             }
         } catch (error) {
             console.error('Ошибка загрузки списка пользователей:', error);
         }
+    }
+
+    // Настройка обработчиков для выпадающего списка
+    setupDropdownHandlers() {
+        const toggle = document.getElementById('invitedByToggle');
+        const dropdown = document.getElementById('invitedByDropdown');
+        const input = document.getElementById('invitedByInput');
+        
+        if (!toggle || !dropdown || !input) return;
+
+        // Переключение видимости списка
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                toggle.classList.add('rotated');
+            } else {
+                dropdown.classList.add('hidden');
+                toggle.classList.remove('rotated');
+            }
+        });
+
+        // Выбор элемента из списка
+        dropdown.addEventListener('click', (e) => {
+            const item = e.target.closest('.dropdown-item');
+            if (item) {
+                const value = item.getAttribute('data-value');
+                const text = item.textContent;
+                
+                input.value = value ? text : '';
+                
+                // Обновляем выделение
+                dropdown.querySelectorAll('.dropdown-item').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+                
+                // Закрываем список
+                dropdown.classList.add('hidden');
+                toggle.classList.remove('rotated');
+            }
+        });
+
+        // Закрытие при клике вне списка
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                toggle.classList.remove('rotated');
+            }
+        });
     }
 
     showScreen(screenId) {
@@ -1628,7 +1683,8 @@ class NavigationManager {
         const username = document.getElementById('registerUsername').value;
         const password = document.getElementById('registerPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
-        const invitedBy = document.getElementById('invitedBy').value;
+        const invitedByInput = document.getElementById('invitedByInput');
+        const invitedBy = invitedByInput ? invitedByInput.value : '';
         
         // Валидация
         if (!this.validateUsername(document.getElementById('registerUsername'))) {
