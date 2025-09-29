@@ -1604,6 +1604,9 @@ class NavigationManager {
             console.error('Элемент finalScore не найден!');
         }
         
+        // Обновляем информацию о розыгрыше на экране окончания игры
+        this.updateGameOverPrizeInfo();
+        
         // Проверяем, новый ли это рекорд
         const currentUser = window.auth.currentUser;
         if (currentUser) {
@@ -2263,6 +2266,25 @@ class NavigationManager {
             }
         } catch (error) {
             console.error('Ошибка проверки рекорда:', error);
+        }
+    }
+
+    // Обновление информации о розыгрыше на экране окончания игры
+    updateGameOverPrizeInfo() {
+        // Копируем информацию о лидере
+        const leaderInfoMain = document.getElementById('leaderInfo');
+        const leaderInfoGameOver = document.getElementById('leaderInfoGameOver');
+        if (leaderInfoMain && leaderInfoGameOver) {
+            leaderInfoGameOver.innerHTML = leaderInfoMain.innerHTML;
+        }
+        
+        // Копируем таймер обратного отсчета
+        const countdownTimeMain = document.getElementById('countdownTime');
+        const countdownTimeGameOver = document.getElementById('countdownTimeGameOver');
+        if (countdownTimeMain && countdownTimeGameOver) {
+            countdownTimeGameOver.textContent = countdownTimeMain.textContent;
+            countdownTimeGameOver.style.color = countdownTimeMain.style.color;
+            countdownTimeGameOver.style.animation = countdownTimeMain.style.animation;
         }
     }
 

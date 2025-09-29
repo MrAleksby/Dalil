@@ -235,6 +235,34 @@
                 <div id="newRecord" class="new-record hidden">🎉 Новый рекорд! 🎉</div>
             </div>
             
+            <!-- Розыгрыш баннер на экране окончания игры -->
+            <div class="prize-banner">
+                <div class="prize-icon">🏆</div>
+                <div class="prize-text">
+                    <span class="prize-title">РОЗЫГРЫШ</span>
+                    <span class="prize-amount">25$ на любую игру</span>
+                </div>
+                <div class="prize-games">Standoff2, Brawl Stars, Roblox, PUBG и др.</div>
+                <div class="prize-subtitle">Набери максимальный счет за период!</div>
+                
+                <!-- Информация о текущем лидере -->
+                <div class="current-leader" id="currentLeaderGameOver">
+                    <div class="leader-label">🥇 Текущий лидер:</div>
+                    <div class="leader-info" id="leaderInfoGameOver">Загрузка...</div>
+                </div>
+                <div class="prize-deadline">
+                    <div class="deadline-static">До 31.10.2025 17:00 (Ташкент)</div>
+                    <div class="countdown-timer" id="countdownTimerGameOver">
+                        <span class="countdown-label">⏰ ОСТАЛОСЬ:</span>
+                        <span class="countdown-time" id="countdownTimeGameOver">Загрузка...</span>
+                    </div>
+                </div>
+                <div class="age-limit">
+                    Участие только до 14 лет И подписка на 
+                    <a href="https://t.me/LTYH2/482" target="_blank" class="telegram-link">@LTYH2</a>
+                </div>
+            </div>
+            
             <div class="game-over-actions">
                 <button onclick="startNewGame()" class="menu-btn">Играть снова</button>
                 <button onclick="showProfile()" class="menu-btn">Профиль</button>
