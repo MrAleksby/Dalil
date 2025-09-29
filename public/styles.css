@@ -165,12 +165,69 @@ body {
 
 .prize-deadline {
     display: block;
+    margin-top: 5px;
+}
+
+.deadline-static {
     font-size: 0.8em;
     color: #FF6B6B;
     font-weight: bold;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-    margin-top: 5px;
     animation: deadlineBlink 2s ease-in-out infinite;
+    margin-bottom: 3px;
+}
+
+/* Живой счетчик обратного отсчета */
+.countdown-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.countdown-label {
+    font-size: 0.7em;
+    color: #FFD700;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.countdown-time {
+    font-size: 0.9em;
+    color: #FF4444;
+    font-weight: 900;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    background: linear-gradient(45deg, #FF4444, #FF6B6B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: countdownPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes countdownPulse {
+    0% { 
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    100% { 
+        transform: scale(1.05);
+        filter: brightness(1.2);
+    }
+}
+
+/* Анимация для критического времени (последний час) */
+@keyframes countdownUrgent {
+    0% { 
+        transform: scale(1);
+        color: #FF0000;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+    100% { 
+        transform: scale(1.1);
+        color: #FFFF00;
+        text-shadow: 2px 2px 8px rgba(255, 0, 0, 0.8), 0 0 15px rgba(255, 255, 0, 0.5);
+    }
 }
 
 @keyframes deadlineBlink {

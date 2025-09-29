@@ -1355,6 +1355,9 @@ class NavigationManager {
         document.getElementById('loginBtn').addEventListener('click', () => this.showLogin());
         document.getElementById('registerBtn').addEventListener('click', () => this.showRegister());
         document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+        
+        // Запускаем счетчик обратного отсчета
+        this.startCountdown();
 
         // Формы авторизации
         document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
@@ -1930,6 +1933,51 @@ class NavigationManager {
             this.showError('Ошибка при выходе из системы');
         }
     }
+    
+    // Счетчик обратного отсчета до конца розыгрыша
+    startCountdown() {
+        // Дата окончания розыгрыша: 31.10.2025 17:00 (Ташкент - UTC+5)
+        const endDate = new Date('2025-10-31T17:00:00+05:00');
+        
+        const updateCountdown = () => {
+            const now = new Date();
+            const timeLeft = endDate - now;
+            
+            const countdownElement = document.getElementById('countdownTime');
+            if (!countdownElement) return;
+            
+            if (timeLeft <= 0) {
+                countdownElement.textContent = '🏁 РОЗЫГРЫШ ЗАВЕРШЕН!';
+                countdownElement.style.color = '#FF0000';
+                return;
+            }
+            
+            // Рассчитываем дни, часы, минуты
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            
+            // Формируем текст в зависимости от времени
+            let countdownText = '';
+            
+            if (days > 0) {
+                countdownText = `${days} дн. ${hours} ч.`;
+            } else if (hours > 0) {
+                countdownText = `${hours} ч. ${minutes} мин.`;
+            } else {
+                countdownText = `${minutes} минут!`;
+                // Красный цвет для последнего часа
+                countdownElement.style.color = '#FF0000';
+                countdownElement.style.animation = 'countdownUrgent 0.5s ease-in-out infinite alternate';
+            }
+            
+            countdownElement.textContent = countdownText;
+        };
+        
+        // Обновляем сразу и каждую минуту
+        updateCountdown();
+        setInterval(updateCountdown, 60000); // Каждую минуту
+    }
 
     // Загрузка профиля игрока
     async loadPlayerProfile() {
@@ -1993,7 +2041,7 @@ class NavigationManager {
                         requirementElement.textContent = '✅ Участвуешь в розыгрыше!';
                         requirementElement.style.color = '#4CAF50';
                     } else {
-                        requirementElement.innerHTML = `Нужно: ${3 - invitedCount} друзей до 14 лет + подписка на <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a> еще`;
+                        requirementElement.innerHTML = `Нужно: ${3 - invitedCount} друзей до 14 лет И подписка на <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a> еще`;
                         requirementElement.style.color = '#FFD700';
                     }
                 }
