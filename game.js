@@ -254,6 +254,13 @@ class Game {
         };
         this.gameOver = false;
         
+        // Сбрасываем параметры отображения счета
+        this.scoreDisplay = {
+            current: 0,
+            target: 0,
+            scale: 1
+        };
+        
         // Физика
         this.gravity = this.INITIAL_GRAVITY;
         this.jumpForce = this.INITIAL_JUMP_FORCE;
@@ -390,8 +397,13 @@ class Game {
         }
         
         // Плавное обновление счета
-        if(this.scoreDisplay.current < this.scoreDisplay.target) {
-            this.scoreDisplay.current += Math.ceil((this.scoreDisplay.target - this.scoreDisplay.current) * 0.1);
+        if(this.scoreDisplay.current !== this.scoreDisplay.target) {
+            const diff = this.scoreDisplay.target - this.scoreDisplay.current;
+            if (diff > 0) {
+                this.scoreDisplay.current += Math.ceil(diff * 0.1);
+            } else {
+                this.scoreDisplay.current += Math.floor(diff * 0.1);
+            }
         }
         
         // Возвращаем масштаб к нормальному
