@@ -376,6 +376,7 @@ class Game {
             });
             this.score += Math.floor(diff);
             
+            
             // Анимация счета
             this.scoreDisplay.target = Math.floor(this.score);
             this.scoreDisplay.scale = 1.2;
@@ -831,7 +832,7 @@ class Game {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Рисуем фон
+        // Рисуем красивый градиентный фон
         this.ctx.fillStyle = this.backgroundGradient;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
