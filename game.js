@@ -1812,7 +1812,16 @@ class NavigationManager {
                        invitedFriends: [],
                        invitedCount: 0
                    });
-                   console.log('Данные пользователя сохранены в Firestore');
+                   
+                   // ДОПОЛНИТЕЛЬНО: Создаем индекс по username для удобства просмотра
+                   await window.db.collection('usersByUsername').doc(username).set({
+                       uid: userCredential.user.uid,
+                       email: email,
+                       createdAt: new Date().toISOString()
+                   });
+                   
+                   console.log('✅ Данные пользователя сохранены в Firestore под UID:', userCredential.user.uid);
+                   console.log('✅ Индекс по username создан:', username);
                    
                    // Если пользователь был приглашен, обновляем счетчик у пригласившего
                    if (invitedBy) {
