@@ -1342,6 +1342,9 @@ class NavigationManager {
     constructor() {
         this.currentScreen = 'main-menu';
         this.setupEventListeners();
+        
+        // Защита от дублирования регистрации
+        this.registrationInProgress = new Set(); // Множество username'ов в процессе регистрации
     }
 
     setupEventListeners() {
@@ -1714,6 +1717,12 @@ class NavigationManager {
         const invitedByInput = document.getElementById('invitedByInput');
         const invitedBy = invitedByInput ? invitedByInput.value : '';
         
+        // КРИТИЧЕСКАЯ защита от race condition
+        if (this.registrationInProgress.has(username)) {
+            this.showError('Регистрация этого пользователя уже выполняется...');
+            return;
+        }
+        
         // Валидация
         if (!this.validateUsername(document.getElementById('registerUsername'))) {
             this.showError('Проверьте имя пользователя');
@@ -1735,6 +1744,10 @@ class NavigationManager {
         registerBtn.textContent = 'Регистрация...';
         registerBtn.style.opacity = '0.6';
         
+        // Блокируем данный username
+        this.registrationInProgress.add(username);
+        console.log('🔒 Заблокирована регистрация для:', username);
+        
         try {
             await this.registerUser(username, password, invitedBy);
             this.showMenu();
@@ -1745,6 +1758,10 @@ class NavigationManager {
             registerBtn.disabled = false;
             registerBtn.textContent = 'Зарегистрироваться';
             registerBtn.style.opacity = '1';
+            
+            // КРИТИЧЕСКИ ВАЖНО: разблокируем username
+            this.registrationInProgress.delete(username);
+            console.log('🔓 Разблокирована регистрация для:', username);
         }
     }
 
