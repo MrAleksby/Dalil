@@ -29,14 +29,21 @@ class Game {
         // ID анимации для отмены
         this.animationId = null;
         
-        // Устанавливаем константы для физики в зависимости от устройства
+        // Определяем мобильное устройство только для управления
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Используем константы для физики
+        // ОДИНАКОВАЯ физика для ВСЕХ устройств
         this.INITIAL_JUMP_FORCE = Game.CONSTANTS.INITIAL_JUMP_FORCE;
         this.INITIAL_GRAVITY = Game.CONSTANTS.INITIAL_GRAVITY;
         this.INITIAL_MOVE_SPEED = Game.CONSTANTS.INITIAL_MOVE_SPEED;
         this.INITIAL_MAX_VELOCITY = Game.CONSTANTS.INITIAL_MAX_VELOCITY;
+        
+        console.log('Универсальная физика для всех устройств:', {
+            moveSpeed: this.INITIAL_MOVE_SPEED,
+            maxVelocity: this.INITIAL_MAX_VELOCITY,
+            jumpForce: this.INITIAL_JUMP_FORCE,
+            gravity: this.INITIAL_GRAVITY
+        });
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
