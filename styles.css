@@ -163,6 +163,50 @@ body {
     font-weight: 500;
 }
 
+/* Информация о текущем лидере */
+.current-leader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(45deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    animation: leaderGlow 2s ease-in-out infinite alternate;
+}
+
+.leader-label {
+    font-size: 0.75em;
+    color: #FFD700;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.leader-info {
+    font-size: 0.8em;
+    color: #FFFFFF;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.leader-score {
+    color: #FFD700;
+    font-weight: 900;
+}
+
+@keyframes leaderGlow {
+    0% { 
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+        border-color: rgba(255, 215, 0, 0.3);
+    }
+    100% { 
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        border-color: rgba(255, 215, 0, 0.5);
+    }
+}
+
 .prize-deadline {
     display: block;
     margin-top: 5px;

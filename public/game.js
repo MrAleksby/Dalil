@@ -1358,6 +1358,9 @@ class NavigationManager {
         
         // Запускаем счетчик обратного отсчета
         this.startCountdown();
+        
+        // Загружаем информацию о текущем лидере
+        this.loadCurrentLeader();
 
         // Формы авторизации
         document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
@@ -1978,6 +1981,49 @@ class NavigationManager {
         updateCountdown();
         setInterval(updateCountdown, 60000); // Каждую минуту
     }
+    
+    // Загрузка информации о текущем лидере
+    async loadCurrentLeader() {
+        try {
+            const leaderInfoElement = document.getElementById('leaderInfo');
+            if (!leaderInfoElement) return;
+            
+            // Проверяем, что Firebase инициализирован
+            if (!window.db) {
+                leaderInfoElement.textContent = 'Нет данных';
+                return;
+            }
+            
+            // Получаем топ-1 игрока из рейтинга
+            const leaderboardQuery = await window.db.collection('leaderboard')
+                .orderBy('score', 'desc')
+                .limit(1)
+                .get();
+            
+            console.log('🔍 Загрузка лидера: найдено записей:', leaderboardQuery.size);
+            
+            if (!leaderboardQuery.empty) {
+                const topPlayer = leaderboardQuery.docs[0].data();
+                const username = topPlayer.username || 'Игрок';
+                const bestScore = topPlayer.score || 0;
+                
+                // Показываем лидера независимо от счета
+                leaderInfoElement.innerHTML = `${username} - <span class="leader-score">${bestScore.toLocaleString()} очков</span>`;
+            } else {
+                leaderInfoElement.textContent = 'Еще никто не играл!';
+            }
+            
+            // Обновляем каждые 30 секунд
+            setTimeout(() => this.loadCurrentLeader(), 30000);
+            
+        } catch (error) {
+            console.error('Ошибка загрузки лидера:', error);
+            const leaderInfoElement = document.getElementById('leaderInfo');
+            if (leaderInfoElement) {
+                leaderInfoElement.textContent = 'Ошибка загрузки';
+            }
+        }
+    }
 
     // Загрузка профиля игрока
     async loadPlayerProfile() {
@@ -2041,7 +2087,7 @@ class NavigationManager {
                         requirementElement.textContent = '✅ Участвуешь в розыгрыше!';
                         requirementElement.style.color = '#4CAF50';
                     } else {
-                        requirementElement.innerHTML = `Нужно: ${3 - invitedCount} друзей до 14 лет И подписка на <a href="https://t.me/LTYH2/462" target="_blank" class="telegram-link">@LTYH2</a> еще`;
+                        requirementElement.innerHTML = `Нужно: ${3 - invitedCount} друзей до 14 лет И подписка на <a href="https://t.me/LTYH2/482" target="_blank" class="telegram-link">@LTYH2</a> еще`;
                         requirementElement.style.color = '#FFD700';
                     }
                 }
