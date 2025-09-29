@@ -254,6 +254,19 @@ class Game {
         };
         this.gameOver = false;
         
+        // Сбрасываем параметры отображения счета НЕМЕДЛЕННО
+        this.scoreDisplay = {
+            current: 0,
+            target: 0,
+            scale: 1
+        };
+        
+        // ФОРСИРОВАННО сбрасываем отображение на экране
+        const scoreElement = document.querySelector('.score-display, [data-score]');
+        if (scoreElement) {
+            scoreElement.textContent = 'СЧЕТ: 0';
+        }
+        
         // Физика
         this.gravity = this.INITIAL_GRAVITY;
         this.jumpForce = this.INITIAL_JUMP_FORCE;
@@ -390,8 +403,13 @@ class Game {
         }
         
         // Плавное обновление счета
-        if(this.scoreDisplay.current < this.scoreDisplay.target) {
-            this.scoreDisplay.current += Math.ceil((this.scoreDisplay.target - this.scoreDisplay.current) * 0.1);
+        if(this.scoreDisplay.current !== this.scoreDisplay.target) {
+            const diff = this.scoreDisplay.target - this.scoreDisplay.current;
+            if (diff > 0) {
+                this.scoreDisplay.current += Math.ceil(diff * 0.1);
+            } else {
+                this.scoreDisplay.current += Math.floor(diff * 0.1);
+            }
         }
         
         // Возвращаем масштаб к нормальному
@@ -967,6 +985,13 @@ class Game {
     }
     
     gameLoop() {
+        // ДОПОЛНИТЕЛЬНАЯ проверка на первом кадре новой игры
+        if (this.score === 0 && this.scoreDisplay.current > 0) {
+            console.log('🔧 Принудительный сброс счета на экране:', this.scoreDisplay.current, '→ 0');
+            this.scoreDisplay.current = 0;
+            this.scoreDisplay.target = 0;
+        }
+        
         this.update();
         this.draw();
         this.animationId = requestAnimationFrame(this.gameLoop);
@@ -1285,6 +1310,12 @@ class Game {
             gameOverScreen.classList.remove('hidden');
             console.log('Экран окончания игры показан');
             
+            // Сначала скрываем сообщение о рекорде
+            const newRecordElement = document.getElementById('newRecord');
+            if (newRecordElement) {
+                newRecordElement.classList.add('hidden');
+            }
+            
             // Обновляем финальный счет
             const finalScoreElement = document.getElementById('finalScore');
             if (finalScoreElement) {
@@ -1558,6 +1589,12 @@ class NavigationManager {
     showGameOver(score) {
         console.log('NavigationManager.showGameOver вызван со счетом:', score);
         this.showScreen('game-over-screen');
+        
+        // Сначала скрываем сообщение о рекорде
+        const newRecordElement = document.getElementById('newRecord');
+        if (newRecordElement) {
+            newRecordElement.classList.add('hidden');
+        }
         
         const finalScoreElement = document.getElementById('finalScore');
         if (finalScoreElement) {
@@ -2197,11 +2234,31 @@ class NavigationManager {
         if (!window.auth || !window.auth.currentUser) return;
         
         try {
-            const userDoc = await window.db.collection('users').doc(window.auth.currentUser.uid).get();
-            if (userDoc.exists) {
-                const stats = userDoc.data().stats || {};
-                if (score > (stats.bestScore || 0)) {
-                    document.getElementById('newRecord').classList.remove('hidden');
+            const currentUser = window.auth.currentUser;
+            
+            // Используем leaderboard как единый источник истины
+            const leaderboardDoc = await window.db.collection('leaderboard').doc(currentUser.uid).get();
+            
+            if (leaderboardDoc.exists) {
+                // Проверяем, является ли текущий счет новым рекордом
+                const existingScore = leaderboardDoc.data().score || 0;
+                console.log('Сравниваем счета: текущий =', score, ', предыдущий лучший =', existingScore);
+                
+                if (score > existingScore) {
+                    const newRecordElement = document.getElementById('newRecord');
+                    if (newRecordElement) {
+                        newRecordElement.classList.remove('hidden');
+                        console.log('🎉 Новый рекорд!', score, '> предыдущий:', existingScore);
+                    }
+                } else {
+                    console.log('Рекорд не побит:', score, '<=', existingScore);
+                }
+            } else {
+                // Если это первый результат пользователя, это автоматически рекорд
+                const newRecordElement = document.getElementById('newRecord');
+                if (newRecordElement) {
+                    newRecordElement.classList.remove('hidden');
+                    console.log('🎉 Первый результат - новый рекорд!', score);
                 }
             }
         } catch (error) {
