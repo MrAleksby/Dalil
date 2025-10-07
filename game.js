@@ -29,6 +29,18 @@ class Game {
         // ID анимации для отмены
         this.animationId = null;
         
+        // Система времени для независимости от FPS
+        this.lastTime = 0;
+        this.deltaTime = 0;
+        this.targetFPS = 60;
+        this.fixedTimeStep = 1000 / this.targetFPS; // 16.67ms для 60 FPS
+        
+        // Отладочная информация о FPS
+        this.fpsCounter = 0;
+        this.fpsLastTime = 0;
+        this.currentFPS = 60;
+        this.showDebugInfo = false; // Можно включить для отладки
+        
         // Определяем мобильное устройство только для управления
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
@@ -345,27 +357,32 @@ class Game {
             return;
         }
 
-        // Обновляем физику персонажа с более плавным ускорением
-        this.player.velocityY += this.gravity;
+        // Нормализуем deltaTime для стабильной физики
+        const normalizedDeltaTime = Math.min(this.deltaTime / this.fixedTimeStep, 2.0); // Ограничиваем максимум в 2 раза
+
+        // Обновляем физику персонажа с учетом времени (независимо от FPS)
+        this.player.velocityY += this.gravity * normalizedDeltaTime;
         
-        // Возвращаем стандартное управление для всех устройств
+        // Возвращаем стандартное управление для всех устройств с учетом времени
         if(this.keys.left) {
-            this.player.velocityX -= this.moveSpeed;
+            this.player.velocityX -= this.moveSpeed * normalizedDeltaTime;
             this.player.rotation = -0.2;
         } else if(this.keys.right) {
-            this.player.velocityX += this.moveSpeed;
+            this.player.velocityX += this.moveSpeed * normalizedDeltaTime;
             this.player.rotation = 0.2;
         } else {
-            this.player.velocityX *= 0.92;  // Улучшенное трение для более плавного движения
+            // Трение также зависит от времени
+            const frictionFactor = Math.pow(0.92, normalizedDeltaTime);
+            this.player.velocityX *= frictionFactor;
             this.player.rotation = 0;
         }
         
         // Ограничиваем максимальную скорость
         this.player.velocityX = Math.max(Math.min(this.player.velocityX, this.maxVelocityX), -this.maxVelocityX);
         
-        // Обновляем позицию с оптимизированной физикой
-        this.player.x += this.player.velocityX;
-        this.player.y += this.player.velocityY;
+        // Обновляем позицию с учетом времени (независимо от FPS)
+        this.player.x += this.player.velocityX * normalizedDeltaTime;
+        this.player.y += this.player.velocityY * normalizedDeltaTime;
         
         // Телепортация через края экрана
         if(this.player.x + this.player.width < 0) {
@@ -984,7 +1001,33 @@ class Game {
         this.ctx.fill();
     }
     
-    gameLoop() {
+    gameLoop(currentTime = 0) {
+        // Вычисляем deltaTime (время между кадрами)
+        if (this.lastTime === 0) {
+            this.lastTime = currentTime;
+            this.fpsLastTime = currentTime;
+        }
+        this.deltaTime = currentTime - this.lastTime;
+        this.lastTime = currentTime;
+        
+        // Подсчет FPS для отладки
+        this.fpsCounter++;
+        if (currentTime - this.fpsLastTime >= 1000) { // Каждую секунду
+            this.currentFPS = this.fpsCounter;
+            this.fpsCounter = 0;
+            this.fpsLastTime = currentTime;
+            
+            // Логируем FPS только если включена отладка
+            if (this.showDebugInfo) {
+                console.log(`🎮 FPS: ${this.currentFPS}, deltaTime: ${this.deltaTime.toFixed(2)}ms, устройство: ${this.isMobile ? 'мобильное' : 'десктоп'}`);
+            }
+        }
+        
+        // Защита от слишком больших скачков времени (например, при переключении вкладок)
+        if (this.deltaTime > 100) { // Больше 100ms
+            this.deltaTime = this.fixedTimeStep;
+        }
+        
         // ДОПОЛНИТЕЛЬНАЯ проверка на первом кадре новой игры
         if (this.score === 0 && this.scoreDisplay.current > 0) {
             console.log('🔧 Принудительный сброс счета на экране:', this.scoreDisplay.current, '→ 0');
@@ -2311,4 +2354,19 @@ const game = new Game();
 
 // Делаем игру доступной глобально
 window.game = game;
-window.navigation = navigation; 
+window.navigation = navigation;
+
+// Функция для включения отладки FPS (можно вызвать из консоли браузера)
+window.enableFPSDebug = function() {
+    if (window.game) {
+        window.game.showDebugInfo = true;
+        console.log('🎮 Отладка FPS включена! Смотрите логи в консоли.');
+    }
+};
+
+window.disableFPSDebug = function() {
+    if (window.game) {
+        window.game.showDebugInfo = false;
+        console.log('🎮 Отладка FPS отключена.');
+    }
+}; 
