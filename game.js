@@ -32,6 +32,9 @@ class Game {
         // ID таймера окончания игры для отмены
         this.gameOverTimerId = null;
         
+        // Флаг для предотвращения множественного вызова endGame
+        this.endGameCalled = false;
+        
         // Система времени для независимости от FPS
         this.lastTime = 0;
         this.deltaTime = 0;
@@ -244,6 +247,9 @@ class Game {
             clearTimeout(this.gameOverTimerId);
             this.gameOverTimerId = null;
         }
+        
+        // Сбрасываем флаг окончания игры
+        this.endGameCalled = false;
 
         // Принудительно останавливаем звук скримера и восстанавливаем музыку
         if (this.jumpscare && this.jumpscare.sound) {
@@ -1162,11 +1168,20 @@ class Game {
      * Завершение игры и сохранение результата
      */
     async endGame() {
+        // Защита от множественного вызова
+        if (this.endGameCalled) {
+            console.log('endGame() уже вызывался, пропускаем');
+            return;
+        }
+        
         // Если игра была перезапущена, не показываем экран окончания
         if (!this.gameOver) {
             console.log('Игра была перезапущена, отменяем показ экрана окончания');
             return;
         }
+        
+        // Устанавливаем флаг что endGame() выполняется
+        this.endGameCalled = true;
         
         const finalScore = Math.floor(this.score);
         console.log('Игра окончена! Финальный счет:', finalScore);
