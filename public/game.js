@@ -1689,8 +1689,12 @@ class NavigationManager {
                 
                 // Создаем элемент динамически
                 const scoreDisplayElement = document.querySelector('.score-display');
+                console.log('Проверяем .score-display для создания:', scoreDisplayElement);
+                
                 if (scoreDisplayElement) {
                     const h3Element = scoreDisplayElement.querySelector('h3');
+                    console.log('Найден h3 элемент:', h3Element);
+                    
                     if (h3Element) {
                         const spanElement = document.createElement('span');
                         spanElement.id = 'finalScore';
@@ -1700,10 +1704,16 @@ class NavigationManager {
                         h3Element.innerHTML = `Ваш результат: `;
                         h3Element.appendChild(spanElement);
                         
-                        console.log('Элемент finalScore создан динамически');
+                        console.log('Элемент finalScore создан динамически и добавлен');
+                        
+                        // Проверяем что элемент теперь есть
+                        const checkElement = document.getElementById('finalScore');
+                        console.log('Проверка созданного элемента:', checkElement);
+                    } else {
+                        console.error('h3 элемент не найден в .score-display');
                     }
                 } else {
-                    console.error('Не удалось создать элемент - блок .score-display не найден');
+                    console.error('Блок .score-display не найден для динамического создания finalScore!');
                 }
             }
         }, 10);
