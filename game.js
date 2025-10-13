@@ -1162,6 +1162,12 @@ class Game {
      * Завершение игры и сохранение результата
      */
     async endGame() {
+        // Если игра была перезапущена, не показываем экран окончания
+        if (!this.gameOver) {
+            console.log('Игра была перезапущена, отменяем показ экрана окончания');
+            return;
+        }
+        
         const finalScore = Math.floor(this.score);
         console.log('Игра окончена! Финальный счет:', finalScore);
         
