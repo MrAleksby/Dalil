@@ -1693,26 +1693,33 @@ class NavigationManager {
             console.log('Проверяем .score-display для создания:', scoreDisplayElement);
             
             if (scoreDisplayElement) {
-                const h3Element = scoreDisplayElement.querySelector('h3');
-                console.log('Найден h3 элемент:', h3Element);
+                console.log('Создаем полную структуру для отображения счета');
                 
-                if (h3Element) {
-                    const spanElement = document.createElement('span');
-                    spanElement.id = 'finalScore';
-                    spanElement.textContent = score.toLocaleString();
-                    
-                    // Заменяем содержимое h3
-                    h3Element.innerHTML = `Ваш результат: `;
-                    h3Element.appendChild(spanElement);
-                    
-                    console.log('Элемент finalScore создан динамически и добавлен');
-                    
-                    // Проверяем что элемент теперь есть
-                    const checkElement = document.getElementById('finalScore');
-                    console.log('Проверка созданного элемента:', checkElement);
-                } else {
-                    console.error('h3 элемент не найден в .score-display');
-                }
+                // Создаем h3 элемент
+                const h3Element = document.createElement('h3');
+                
+                // Создаем span с ID finalScore
+                const spanElement = document.createElement('span');
+                spanElement.id = 'finalScore';
+                spanElement.textContent = score.toLocaleString();
+                
+                // Добавляем span в h3
+                h3Element.textContent = 'Ваш результат: ';
+                h3Element.appendChild(spanElement);
+                
+                // Очищаем и заполняем .score-display
+                scoreDisplayElement.innerHTML = '';
+                scoreDisplayElement.appendChild(h3Element);
+                
+                // Создаем элемент newRecord
+                const newRecordElement = document.createElement('div');
+                newRecordElement.id = 'newRecord';
+                newRecordElement.className = 'new-record hidden';
+                newRecordElement.textContent = '🎉 Новый рекорд! 🎉';
+                scoreDisplayElement.appendChild(newRecordElement);
+                
+                console.log('Полная структура создана и добавлена в .score-display');
+                console.log('Проверка созданного finalScore элемента:', document.getElementById('finalScore'));
             } else {
                 console.error('Блок .score-display не найден для динамического создания finalScore!');
             }
