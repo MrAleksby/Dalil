@@ -159,6 +159,13 @@ class Game {
         this.canvas.width = width;
         this.canvas.height = height;
         
+        console.log('📐 Canvas настроен:', {
+            width: width,
+            height: height,
+            actualWidth: this.canvas.width,
+            actualHeight: this.canvas.height
+        });
+        
         // Обновляем градиенты
         this.createGradients();
     }
@@ -272,6 +279,13 @@ class Game {
             velocityX: 0,
             rotation: 0
         };
+        
+        console.log('🎮 Создан новый игрок:', {
+            canvasWidth: this.canvas.width,
+            canvasHeight: this.canvas.height,
+            playerX: this.player.x,
+            playerY: this.player.y
+        });
         
         // Игровые параметры
         this.platforms = [];
