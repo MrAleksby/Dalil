@@ -29,6 +29,9 @@ class Game {
         // ID анимации для отмены
         this.animationId = null;
         
+        // ID таймера окончания игры для отмены
+        this.gameOverTimerId = null;
+        
         // Система времени для независимости от FPS
         this.lastTime = 0;
         this.deltaTime = 0;
@@ -234,6 +237,12 @@ class Game {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
+        }
+
+        // Очищаем таймер окончания игры если он существует
+        if (this.gameOverTimerId) {
+            clearTimeout(this.gameOverTimerId);
+            this.gameOverTimerId = null;
         }
 
         // Принудительно останавливаем звук скримера и восстанавливаем музыку
@@ -473,7 +482,7 @@ class Game {
                 height: this.enemy.height - 10
             })) {
                 this.gameOver = true;
-                setTimeout(() => this.endGame(), 1000);
+                this.gameOverTimerId = setTimeout(() => this.endGame(), 1000);
                 return;
             }
         }
@@ -481,7 +490,7 @@ class Game {
         // Проверка на проигрыш
         if(this.player.y > this.canvas.height) {
             this.gameOver = true;
-            setTimeout(() => this.endGame(), 1000);
+            this.gameOverTimerId = setTimeout(() => this.endGame(), 1000);
         }
         
         // Проверяем условие для начала предварительной фазы скримера
