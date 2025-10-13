@@ -41,11 +41,6 @@ class Game {
         this.targetFPS = 60;
         this.fixedTimeStep = 1000 / this.targetFPS; // 16.67ms для 60 FPS
         
-        // Отладочная информация о FPS
-        this.fpsCounter = 0;
-        this.fpsLastTime = 0;
-        this.currentFPS = 60;
-        this.showDebugInfo = false; // Можно включить для отладки
         
         // Определяем мобильное устройство только для управления
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -56,12 +51,6 @@ class Game {
         this.INITIAL_MOVE_SPEED = Game.CONSTANTS.INITIAL_MOVE_SPEED;
         this.INITIAL_MAX_VELOCITY = Game.CONSTANTS.INITIAL_MAX_VELOCITY;
         
-        console.log('Универсальная физика для всех устройств:', {
-            moveSpeed: this.INITIAL_MOVE_SPEED,
-            maxVelocity: this.INITIAL_MAX_VELOCITY,
-            jumpForce: this.INITIAL_JUMP_FORCE,
-            gravity: this.INITIAL_GRAVITY
-        });
         
         // Добавляем параметры для анимации счета
         this.scoreDisplay = {
@@ -159,12 +148,6 @@ class Game {
         this.canvas.width = width;
         this.canvas.height = height;
         
-        console.log('📐 Canvas настроен:', {
-            width: width,
-            height: height,
-            actualWidth: this.canvas.width,
-            actualHeight: this.canvas.height
-        });
         
         // Обновляем градиенты
         this.createGradients();
@@ -289,12 +272,6 @@ class Game {
             rotation: 0
         };
         
-        console.log('🎮 Создан новый игрок:', {
-            canvasWidth: this.canvas.width,
-            canvasHeight: this.canvas.height,
-            playerX: this.player.x,
-            playerY: this.player.y
-        });
         
         // Игровые параметры
         this.platforms = [];
@@ -1051,18 +1028,6 @@ class Game {
         this.deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
         
-        // Подсчет FPS для отладки
-        this.fpsCounter++;
-        if (currentTime - this.fpsLastTime >= 1000) { // Каждую секунду
-            this.currentFPS = this.fpsCounter;
-            this.fpsCounter = 0;
-            this.fpsLastTime = currentTime;
-            
-            // Логируем FPS только если включена отладка
-            if (this.showDebugInfo) {
-                console.log(`🎮 FPS: ${this.currentFPS}, deltaTime: ${this.deltaTime.toFixed(2)}ms, устройство: ${this.isMobile ? 'мобильное' : 'десктоп'}`);
-            }
-        }
         
         // Защита от слишком больших скачков времени (например, при переключении вкладок)
         if (this.deltaTime > 100) { // Больше 100ms
@@ -1071,7 +1036,6 @@ class Game {
         
         // ДОПОЛНИТЕЛЬНАЯ проверка на первом кадре новой игры
         if (this.score === 0 && this.scoreDisplay.current > 0) {
-            console.log('🔧 Принудительный сброс счета на экране:', this.scoreDisplay.current, '→ 0');
             this.scoreDisplay.current = 0;
             this.scoreDisplay.target = 0;
         }
@@ -2426,18 +2390,3 @@ const game = new Game();
 // Делаем игру доступной глобально
 window.game = game;
 window.navigation = navigation;
-
-// Функция для включения отладки FPS (можно вызвать из консоли браузера)
-window.enableFPSDebug = function() {
-    if (window.game) {
-        window.game.showDebugInfo = true;
-        console.log('🎮 Отладка FPS включена! Смотрите логи в консоли.');
-    }
-};
-
-window.disableFPSDebug = function() {
-    if (window.game) {
-        window.game.showDebugInfo = false;
-        console.log('🎮 Отладка FPS отключена.');
-    }
-}; 

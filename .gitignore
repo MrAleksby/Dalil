@@ -21,3 +21,16 @@ node_modules/
 # Backup файлы
 *.bak
 *.backup
+
+# Дублирующиеся файлы (оставляем только в public/)
+game.js
+index.html
+styles.css
+firebase-config.js
+napryajennyiy-zvuk.mp3
+Standoff 2 .mp3
+parallax-background.js
+game-3d-integration.js
+threejs-setup.js
+mock-firebase.js
+FPS_FIX_README.md
