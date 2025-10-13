@@ -358,6 +358,7 @@ class Game {
     
     update() {
         if(this.gameOver) {
+            console.log('⚠️ Игра окончена в update(), score:', this.score, 'player.y:', this.player?.y);
             // Если игра окончена, останавливаем скример немедленно
             if(this.jumpscare.active || this.jumpscare.prePhase) {
                 this.jumpscare.active = false;
@@ -487,6 +488,7 @@ class Game {
                 width: this.enemy.width - 10,
                 height: this.enemy.height - 10
             })) {
+                console.log('💥 Столкновение с противником! Устанавливаем gameOver = true');
                 this.gameOver = true;
                 this.gameOverTimerId = setTimeout(() => this.endGame(), 1000);
                 return;
@@ -495,6 +497,7 @@ class Game {
         
         // Проверка на проигрыш
         if(this.player.y > this.canvas.height) {
+            console.log('⬇️ Игрок упал вниз! player.y:', this.player.y, 'canvas.height:', this.canvas.height, 'Устанавливаем gameOver = true');
             this.gameOver = true;
             this.gameOverTimerId = setTimeout(() => this.endGame(), 1000);
         }
