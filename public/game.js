@@ -1663,6 +1663,12 @@ class NavigationManager {
         console.log('NavigationManager.showGameOver вызван со счетом:', score);
         this.showScreen('game-over-screen');
         
+        // Показываем блок с результатом
+        const scoreDisplayElement = document.querySelector('.score-display');
+        if (scoreDisplayElement) {
+            scoreDisplayElement.style.display = 'block';
+        }
+        
         // Сначала скрываем сообщение о рекорде
         const newRecordElement = document.getElementById('newRecord');
         if (newRecordElement) {
