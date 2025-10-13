@@ -1690,7 +1690,7 @@ class NavigationManager {
         this.showScreen('game-over-screen');
         
         // Показываем блок с результатом
-        const scoreDisplayElement = document.querySelector('.score-display');
+        const scoreDisplayElement = document.querySelector('#game-over-screen .score-display');
         if (scoreDisplayElement) {
             scoreDisplayElement.style.display = 'block';
             console.log('Блок .score-display показан');
@@ -1704,52 +1704,19 @@ class NavigationManager {
             newRecordElement.classList.add('hidden');
         }
         
-        // Выполняем сразу без задержки
-        let finalScoreElement = document.getElementById('finalScore');
-        console.log('Поиск finalScore элемента:', finalScoreElement);
-        
-        if (finalScoreElement) {
-            finalScoreElement.textContent = score.toLocaleString();
-            console.log('Финальный счет обновлен в NavigationManager:', score);
-        } else {
-            console.error('Элемент finalScore не найден! Создаем динамически...');
+        // Небольшая задержка для обновления DOM после показа экрана
+        setTimeout(() => {
+            let finalScoreElement = document.getElementById('finalScore');
+            console.log('Поиск finalScore элемента:', finalScoreElement);
             
-            // Создаем элемент динамически
-            const scoreDisplayElement = document.querySelector('.score-display');
-            console.log('Проверяем .score-display для создания:', scoreDisplayElement);
-            
-            if (scoreDisplayElement) {
-                console.log('Создаем полную структуру для отображения счета');
-                
-                // Создаем h3 элемент
-                const h3Element = document.createElement('h3');
-                
-                // Создаем span с ID finalScore
-                const spanElement = document.createElement('span');
-                spanElement.id = 'finalScore';
-                spanElement.textContent = score.toLocaleString();
-                
-                // Добавляем span в h3
-                h3Element.textContent = 'Ваш результат: ';
-                h3Element.appendChild(spanElement);
-                
-                // Очищаем и заполняем .score-display
-                scoreDisplayElement.innerHTML = '';
-                scoreDisplayElement.appendChild(h3Element);
-                
-                // Создаем элемент newRecord
-                const newRecordElement = document.createElement('div');
-                newRecordElement.id = 'newRecord';
-                newRecordElement.className = 'new-record hidden';
-                newRecordElement.textContent = '🎉 Новый рекорд! 🎉';
-                scoreDisplayElement.appendChild(newRecordElement);
-                
-                console.log('Полная структура создана и добавлена в .score-display');
-                console.log('Проверка созданного finalScore элемента:', document.getElementById('finalScore'));
+            if (finalScoreElement) {
+                finalScoreElement.textContent = score.toLocaleString();
+                console.log('Финальный счет обновлен в NavigationManager:', score);
             } else {
-                console.error('Блок .score-display не найден для динамического создания finalScore!');
+                console.error('Элемент finalScore не найден даже после задержки!');
+                console.log('Все элементы с ID:', document.querySelectorAll('[id]'));
             }
-        }
+        }, 50);
         
         // Обновляем информацию о розыгрыше на экране окончания игры
         this.updateGameOverPrizeInfo();
