@@ -585,146 +585,139 @@ class Game {
                rect1.y + rect1.height > rect2.y;
     }
     
-    drawKenito(x, y, rotation) {
+    drawSpongeBob(x, y, rotation) {
         this.ctx.save();
         this.ctx.translate(x + this.player.width/2, y + this.player.height/2);
         this.ctx.rotate(rotation);
 
         // Размеры частей тела
         const headRadius = this.player.width/2;
-        const bodyWidth = headRadius * 1.3;
-        const bodyHeight = headRadius * 1.8;
-        const legWidth = headRadius/2.2;
-        const legHeight = headRadius * 1.3;
-        const bootHeight = headRadius/3;
+        const bodyWidth = headRadius * 1.4;
+        const bodyHeight = headRadius * 1.6;
+        const legWidth = headRadius/2.5;
+        const legHeight = headRadius * 1.2;
+        const bootHeight = headRadius/4;
 
-        // Рисуем голову (БОЛЬШАЯ, как в Roblox)
-        this.ctx.fillStyle = '#F4C2A1'; // Светлый цвет кожи
+        // Рисуем голову SpongeBob (квадратная с дырочками)
+        this.ctx.fillStyle = '#FFE135'; // Желтый цвет SpongeBob
         this.ctx.fillRect(-headRadius * 1.2, -headRadius * 1.2, headRadius * 2.4, headRadius * 2.4);
+        
+        // Рисуем дырочки на губке
+        this.ctx.fillStyle = '#FFD700'; // Более темный желтый для дырочек
+        for(let i = 0; i < 6; i++) {
+            for(let j = 0; j < 4; j++) {
+                const holeX = -headRadius + (i * headRadius * 0.4) + headRadius * 0.1;
+                const holeY = -headRadius + (j * headRadius * 0.4) + headRadius * 0.1;
+                this.ctx.beginPath();
+                this.ctx.arc(holeX, holeY, headRadius * 0.08, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+        }
 
-        // Рисуем волосы (оранжевые, БОЛЬШИЕ)
-        this.ctx.fillStyle = '#FF8C00'; // Ярко-оранжевый цвет
-        this.ctx.fillRect(-headRadius * 1.1, -headRadius * 1.4, headRadius * 2.2, headRadius * 0.8);
-        
-        // Боковые части волос (БОЛЬШИЕ)
-        this.ctx.fillRect(-headRadius * 1.3, -headRadius * 1.0, headRadius * 0.4, headRadius * 1.0);
-        this.ctx.fillRect(headRadius * 0.9, -headRadius * 1.0, headRadius * 0.4, headRadius * 1.0);
-        
-        // Челка с прядями
-        this.ctx.fillRect(-headRadius * 0.8, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
-        this.ctx.fillRect(-headRadius * 0.4, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
-        this.ctx.fillRect(0, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
-        this.ctx.fillRect(headRadius * 0.4, -headRadius * 1.3, headRadius * 0.4, headRadius * 0.4);
-        
-        // Тени в волосах
-        this.ctx.fillStyle = '#E67E00';
-        this.ctx.fillRect(-headRadius * 1.1, -headRadius * 1.4, headRadius * 2.2, headRadius * 0.15);
-
-        // Рисуем глаза (ОГРОМНЫЕ, как в Roblox)
+        // Рисуем глаза (ОГРОМНЫЕ и круглые)
         this.ctx.fillStyle = 'white';
         this.ctx.beginPath();
-        this.ctx.arc(-headRadius/2, -headRadius/3, headRadius/3, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/2, -headRadius/3, headRadius/3, 0, Math.PI * 2);
+        this.ctx.arc(-headRadius/2.5, -headRadius/3, headRadius/2.5, 0, Math.PI * 2);
+        this.ctx.arc(headRadius/2.5, -headRadius/3, headRadius/2.5, 0, Math.PI * 2);
         this.ctx.fill();
         
-        // Зрачки (БОЛЬШИЕ)
+        // Зрачки (синие как у SpongeBob)
+        this.ctx.fillStyle = '#4169E1'; // Royal Blue
+        this.ctx.beginPath();
+        this.ctx.arc(-headRadius/2.5, -headRadius/3, headRadius/4, 0, Math.PI * 2);
+        this.ctx.arc(headRadius/2.5, -headRadius/3, headRadius/4, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        // Блики в глазах
+        this.ctx.fillStyle = 'white';
+        this.ctx.beginPath();
+        this.ctx.arc(-headRadius/3, -headRadius/2.5, headRadius/8, 0, Math.PI * 2);
+        this.ctx.arc(headRadius/3, -headRadius/2.5, headRadius/8, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Рисуем ресницы (длинные)
         this.ctx.fillStyle = 'black';
+        this.ctx.lineWidth = 3;
+        // Левая ресница
         this.ctx.beginPath();
-        this.ctx.arc(-headRadius/2, -headRadius/3, headRadius/5, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/2, -headRadius/3, headRadius/5, 0, Math.PI * 2);
+        this.ctx.moveTo(-headRadius/2.5 - headRadius/6, -headRadius/2);
+        this.ctx.lineTo(-headRadius/2.5 - headRadius/12, -headRadius/2.5);
+        this.ctx.moveTo(-headRadius/2.5, -headRadius/2);
+        this.ctx.lineTo(-headRadius/2.5 + headRadius/12, -headRadius/2.5);
+        this.ctx.stroke();
+        // Правая ресница
+        this.ctx.beginPath();
+        this.ctx.moveTo(headRadius/2.5 - headRadius/12, -headRadius/2);
+        this.ctx.lineTo(headRadius/2.5 - headRadius/6, -headRadius/2.5);
+        this.ctx.moveTo(headRadius/2.5 + headRadius/12, -headRadius/2);
+        this.ctx.lineTo(headRadius/2.5 + headRadius/6, -headRadius/2.5);
+        this.ctx.stroke();
+
+        // Рисуем нос (маленький треугольник)
+        this.ctx.fillStyle = '#FFE135';
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, -headRadius/6);
+        this.ctx.lineTo(-headRadius/12, -headRadius/4);
+        this.ctx.lineTo(headRadius/12, -headRadius/4);
+        this.ctx.closePath();
         this.ctx.fill();
-        
-        // Блики в глазах (БОЛЬШИЕ)
+
+        // Рисуем рот (широкая улыбка с зубами)
         this.ctx.fillStyle = 'white';
         this.ctx.beginPath();
-        this.ctx.arc(-headRadius/2 - headRadius/15, -headRadius/3 - headRadius/15, headRadius/12, 0, Math.PI * 2);
-        this.ctx.arc(headRadius/2 - headRadius/15, -headRadius/3 - headRadius/15, headRadius/12, 0, Math.PI * 2);
+        this.ctx.arc(0, headRadius/8, headRadius/2.5, 0, Math.PI);
         this.ctx.fill();
-
-        // Рисуем брови (БОЛЬШИЕ)
-        this.ctx.fillStyle = '#8B4513';
-        this.ctx.fillRect(-headRadius/2, -headRadius/2, headRadius/3, headRadius/12);
-        this.ctx.fillRect(headRadius/6, -headRadius/2, headRadius/3, headRadius/12);
-
-        // Рисуем нос (БОЛЬШОЙ)
-        this.ctx.fillStyle = '#F4C2A1';
-        this.ctx.fillRect(-headRadius/15, -headRadius/6, headRadius/7, headRadius/10);
-
-        // Рисуем рот (БОЛЬШАЯ улыбка)
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = 'black';
-        this.ctx.lineWidth = 4;
-        this.ctx.arc(0, headRadius/6, headRadius/2, 0, Math.PI);
-        this.ctx.stroke();
         
         // Рисуем зубы
         this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(-headRadius/6, headRadius/8, headRadius/8, headRadius/15);
-        this.ctx.fillRect(headRadius/20, headRadius/8, headRadius/8, headRadius/15);
+        for(let i = 0; i < 4; i++) {
+            const toothX = -headRadius/4 + (i * headRadius/6);
+            this.ctx.fillRect(toothX, headRadius/6, headRadius/8, headRadius/12);
+        }
+        
+        // Обводка рта
+        this.ctx.strokeStyle = 'black';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(0, headRadius/8, headRadius/2.5, 0, Math.PI);
+        this.ctx.stroke();
 
-        // Рисуем куртку (бирюзовая/зеленая)
-        this.ctx.fillStyle = '#20B2AA'; // Бирюзовый цвет
+        // Рисуем тело (белая рубашка)
+        this.ctx.fillStyle = 'white';
         this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, bodyHeight);
         
-        // Рисуем воротник куртки (белый)
+        // Рисуем галстук (красный)
+        this.ctx.fillStyle = '#FF0000';
+        this.ctx.fillRect(-headRadius/8, -headRadius/3, headRadius/4, bodyHeight * 0.6);
+
+        // Рисуем руки (желтые)
+        this.ctx.fillStyle = '#FFE135';
+        // Левая рука
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/6, -headRadius/4, headRadius/6, headRadius * 0.8);
+        // Правая рука
+        this.ctx.fillRect(bodyWidth/2, -headRadius/4, headRadius/6, headRadius * 0.8);
+        
+        // Рисуем кисти рук (белые)
         this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(-bodyWidth/2, -headRadius/2, bodyWidth, headRadius/3);
-        
-        // Рисуем белые полосы на плечах
-        this.ctx.fillRect(-bodyWidth/2, -headRadius/3, bodyWidth, headRadius/8);
-        this.ctx.fillRect(-bodyWidth/2, headRadius/6, bodyWidth, headRadius/8);
+        this.ctx.fillRect(-bodyWidth/2 - headRadius/8, headRadius/3, headRadius/4, headRadius/4);
+        this.ctx.fillRect(bodyWidth/2 + headRadius/8, headRadius/3, headRadius/4, headRadius/4);
 
-        // Рисуем белую футболку под курткой
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(-bodyWidth/2 + headRadius/8, -headRadius/6, bodyWidth - headRadius/4, bodyHeight/2.5);
-
-        // Рисуем номер 456 на футболке (ОГРОМНЫЙ и яркий!)
-        this.ctx.fillStyle = 'red'; // КРАСНЫЙ цвет для максимального контраста!
-        this.ctx.font = `bold ${headRadius/0.8}px Arial`; // ЕЩЕ БОЛЬШЕ!
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('456', 0, headRadius/6);
-        
-        // Добавляем черную обводку для четкости
-        this.ctx.strokeStyle = 'black';
-        this.ctx.lineWidth = 4;
-        this.ctx.strokeText('456', 0, headRadius/6);
-        
-        // Добавляем белую тень для еще большей четкости
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = `bold ${headRadius/0.8}px Arial`;
-        this.ctx.fillText('456', 2, headRadius/6 + 2);
-        
-        // Возвращаем красный цвет
-        this.ctx.fillStyle = 'red';
-        this.ctx.fillText('456', 0, headRadius/6);
-
-        // Рисуем руки (согнутые в локтях, как в примере)
-        this.ctx.fillStyle = '#F4C2A1';
-        // Левая рука (согнутая)
-        this.ctx.fillRect(-bodyWidth/2 - headRadius/6, -headRadius/8, headRadius/6, headRadius * 0.9);
-        this.ctx.fillRect(-bodyWidth/2 - headRadius/3, headRadius/4, headRadius/4, headRadius/3);
-        // Правая рука (согнутая)
-        this.ctx.fillRect(bodyWidth/2, -headRadius/8, headRadius/6, headRadius * 0.9);
-        this.ctx.fillRect(bodyWidth/2 + headRadius/8, headRadius/4, headRadius/4, headRadius/3);
-
-        // Рисуем штаны (бирюзовые)
-        this.ctx.fillStyle = '#20B2AA';
+        // Рисуем штаны (коричневые)
+        this.ctx.fillStyle = '#8B4513';
         // Левая нога
         this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
         // Правая нога
         this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2, legWidth, legHeight);
 
-        // Рисуем белые кроссовки
+        // Рисуем носки (белые)
         this.ctx.fillStyle = 'white';
-        // Левый кроссовок
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
-        // Правый кроссовок
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth, bootHeight);
-        
-        // Подошва кроссовок (белая)
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight+bootHeight, legWidth, headRadius/10);
-        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight+bootHeight, legWidth, headRadius/10);
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight-legHeight/4, legWidth, legHeight/4);
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight-legHeight/4, legWidth, legHeight/4);
+
+        // Рисуем черные туфли
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(-headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth * 1.2, bootHeight);
+        this.ctx.fillRect(headRadius/2-legWidth/2, headRadius/2+legHeight, legWidth * 1.2, bootHeight);
 
         this.ctx.restore();
     }
@@ -922,8 +915,8 @@ class Game {
         this.ctx.shadowBlur = 0;
         this.ctx.shadowOffsetY = 0;
         
-        // Рисуем Кенито
-        this.drawKenito(this.player.x, this.player.y, this.player.rotation);
+        // Рисуем SpongeBob
+        this.drawSpongeBob(this.player.x, this.player.y, this.player.rotation);
         
         // Рисуем противника с эффектом предупреждения
         if(this.enemy.active) {
