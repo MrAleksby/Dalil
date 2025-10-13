@@ -243,6 +243,11 @@ class Game {
     }
     
     startNewGame() {
+        // ПОКАЗЫВАЕМ ЭКРАН ИГРЫ ПЕРЕД ЗАПУСКОМ (как при первом запуске)
+        if (window.navigation) {
+            window.navigation.showScreen('game-screen');
+        }
+        
         // Отменяем предыдущую анимацию если она есть
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
@@ -257,6 +262,10 @@ class Game {
         
         // Сбрасываем флаг окончания игры
         this.endGameCalled = false;
+        
+        // СБРАСЫВАЕМ ВРЕМЯ (как при первом запуске)
+        this.lastTime = 0;
+        this.deltaTime = 0;
 
         // Принудительно останавливаем звук скримера и восстанавливаем музыку
         if (this.jumpscare && this.jumpscare.sound) {
