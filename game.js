@@ -1678,45 +1678,45 @@ class NavigationManager {
             newRecordElement.classList.add('hidden');
         }
         
-        // Небольшая задержка для обновления DOM
-        setTimeout(() => {
-            let finalScoreElement = document.getElementById('finalScore');
-            if (finalScoreElement) {
-                finalScoreElement.textContent = score.toLocaleString();
-                console.log('Финальный счет обновлен в NavigationManager:', score);
-            } else {
-                console.error('Элемент finalScore не найден! Создаем динамически...');
+        // Выполняем сразу без задержки
+        let finalScoreElement = document.getElementById('finalScore');
+        console.log('Поиск finalScore элемента:', finalScoreElement);
+        
+        if (finalScoreElement) {
+            finalScoreElement.textContent = score.toLocaleString();
+            console.log('Финальный счет обновлен в NavigationManager:', score);
+        } else {
+            console.error('Элемент finalScore не найден! Создаем динамически...');
+            
+            // Создаем элемент динамически
+            const scoreDisplayElement = document.querySelector('.score-display');
+            console.log('Проверяем .score-display для создания:', scoreDisplayElement);
+            
+            if (scoreDisplayElement) {
+                const h3Element = scoreDisplayElement.querySelector('h3');
+                console.log('Найден h3 элемент:', h3Element);
                 
-                // Создаем элемент динамически
-                const scoreDisplayElement = document.querySelector('.score-display');
-                console.log('Проверяем .score-display для создания:', scoreDisplayElement);
-                
-                if (scoreDisplayElement) {
-                    const h3Element = scoreDisplayElement.querySelector('h3');
-                    console.log('Найден h3 элемент:', h3Element);
+                if (h3Element) {
+                    const spanElement = document.createElement('span');
+                    spanElement.id = 'finalScore';
+                    spanElement.textContent = score.toLocaleString();
                     
-                    if (h3Element) {
-                        const spanElement = document.createElement('span');
-                        spanElement.id = 'finalScore';
-                        spanElement.textContent = score.toLocaleString();
-                        
-                        // Заменяем содержимое h3
-                        h3Element.innerHTML = `Ваш результат: `;
-                        h3Element.appendChild(spanElement);
-                        
-                        console.log('Элемент finalScore создан динамически и добавлен');
-                        
-                        // Проверяем что элемент теперь есть
-                        const checkElement = document.getElementById('finalScore');
-                        console.log('Проверка созданного элемента:', checkElement);
-                    } else {
-                        console.error('h3 элемент не найден в .score-display');
-                    }
+                    // Заменяем содержимое h3
+                    h3Element.innerHTML = `Ваш результат: `;
+                    h3Element.appendChild(spanElement);
+                    
+                    console.log('Элемент finalScore создан динамически и добавлен');
+                    
+                    // Проверяем что элемент теперь есть
+                    const checkElement = document.getElementById('finalScore');
+                    console.log('Проверка созданного элемента:', checkElement);
                 } else {
-                    console.error('Блок .score-display не найден для динамического создания finalScore!');
+                    console.error('h3 элемент не найден в .score-display');
                 }
+            } else {
+                console.error('Блок .score-display не найден для динамического создания finalScore!');
             }
-        }, 10);
+        }
         
         // Обновляем информацию о розыгрыше на экране окончания игры
         this.updateGameOverPrizeInfo();
